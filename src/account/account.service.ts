@@ -18,14 +18,13 @@ export class AccountService {
       throw new ConflictException('Account already exists');
     }
 
-    createAccountDto.passwordHash = await bcrypt.hash(
-      createAccountDto.password,
-      10,
-    );
+    const account = new Account();
 
-    createAccountDto.token = randomBytes(10).toString('hex');
+    account.akey = createAccountDto.akey;
+    account.passwordHash = await bcrypt.hash(createAccountDto.password, 10);
+    account.token = randomBytes(10).toString('hex');
 
-    return new this.accountModel(createAccountDto).save();
+    return new this.accountModel(account).save();
   }
 
   async findOne(akey: string): Promise<Account> {
