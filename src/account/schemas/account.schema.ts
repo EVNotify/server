@@ -10,6 +10,9 @@ export class Account {
 
   @Prop({ required: true })
   passwordHash: string;
+
+  @Prop({ required: true })
+  token: string;
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);
