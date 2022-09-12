@@ -6,6 +6,7 @@ import { UpdateAccountDto } from './dto/update-account.dto';
 import { Account } from './schemas/account.schema';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
+import { AccountDto } from './dto/account.dto';
 
 @Injectable()
 export class AccountService {
@@ -13,7 +14,7 @@ export class AccountService {
     @InjectModel(Account.name) private accountModel: Model<Account>,
   ) {}
 
-  async create(createAccountDto: CreateAccountDto): Promise<Account> {
+  async create(createAccountDto: CreateAccountDto): Promise<AccountDto> {
     if (await this.findOne(createAccountDto.akey)) {
       throw new ConflictException('Account already exists');
     }
@@ -24,7 +25,9 @@ export class AccountService {
     account.passwordHash = await bcrypt.hash(createAccountDto.password, 10);
     account.token = randomBytes(10).toString('hex');
 
-    return new this.accountModel(account).save();
+    await new this.accountModel(account).save();
+
+    return new AccountDto(account);
   }
 
   async findOne(akey: string): Promise<Account> {
