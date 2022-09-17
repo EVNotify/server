@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateAccountDto } from './dto/create-account.dto';
@@ -7,6 +7,7 @@ import { Account } from './schemas/account.schema';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { AccountDto } from './dto/account.dto';
+import { AccountAlreadyExistsException } from './exceptions/account-already-exists.exception';
 
 @Injectable()
 export class AccountService {
@@ -16,7 +17,7 @@ export class AccountService {
 
   async create(createAccountDto: CreateAccountDto): Promise<AccountDto> {
     if (await this.findOne(createAccountDto.akey)) {
-      throw new ConflictException('Account already exists');
+      throw new AccountAlreadyExistsException();
     }
 
     const account = new Account();

@@ -6,10 +6,13 @@ import {
   Patch,
   Param,
   NotFoundException,
+  ConflictException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
+import { AccountAlreadyExistsException } from './exceptions/account-already-exists.exception';
 
 @Controller('account')
 export class AccountController {
@@ -17,7 +20,15 @@ export class AccountController {
 
   @Post()
   async create(@Body() createAccountDto: CreateAccountDto) {
-    return await this.accountService.create(createAccountDto);
+    try {
+      return await this.accountService.create(createAccountDto);
+    } catch (error) {
+      if (error instanceof AccountAlreadyExistsException) {
+        throw new ConflictException(error.message);
+      }
+
+      throw new InternalServerErrorException('Account creation failed');
+    }
   }
 
   @Get(':akey')
