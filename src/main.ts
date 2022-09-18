@@ -8,6 +8,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       disableErrorMessages: process.env.NODE_ENV === 'prod',
+      whitelist: true,
     }),
   );
 
