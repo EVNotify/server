@@ -29,7 +29,7 @@ export class AccountService {
 
     account.akey = createAccountDto.akey;
     account.passwordHash = await bcrypt.hash(createAccountDto.password, 10);
-    account.token = randomBytes(10).toString('hex');
+    account.token = this.token();
 
     await new this.accountModel(account).save();
 
@@ -91,7 +91,7 @@ export class AccountService {
 
     const account = await this.loginWithPassword(akey, loginDto);
 
-    account.token = randomBytes(10).toString('hex');
+    account.token = this.token();
 
     await this.accountModel.updateOne(
       {
@@ -110,5 +110,9 @@ export class AccountService {
   async changePassword(akey: string, changePasswordDto: ChangePasswordDto) {
     console.log(changePasswordDto);
     return '';
+  }
+
+  private token(): string {
+    return randomBytes(10).toString('hex');
   }
 }
