@@ -13,6 +13,7 @@ import { AccountNotExistsException } from './exceptions/account-not-exists.excep
 import { AuthenticationException } from './exceptions/authentication.exception';
 import { LoginPasswordDto } from './dto/login-password.dto';
 import { LoginTokenDto } from './dto/login-token.dto';
+import { PasswordNotDifferentException } from './exceptions/password-not-different.exception';
 
 @Injectable()
 export class AccountService {
@@ -116,6 +117,14 @@ export class AccountService {
     loginDto.password = changePasswordDto.password;
 
     const account = await this.loginWithPassword(akey, loginDto);
+    const isIdentical = await bcrypt.compare(
+      changePasswordDto.newPassword,
+      account.passwordHash,
+    );
+
+    if (isIdentical) {
+      throw new PasswordNotDifferentException();
+    }
 
     account.passwordHash = await this.hash(changePasswordDto.newPassword);
 

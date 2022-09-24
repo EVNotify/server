@@ -10,6 +10,7 @@ import {
   InternalServerErrorException,
   UseGuards,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { Exception } from 'src/utils/exception';
 import { AuthGuard } from './account.guard';
@@ -22,6 +23,7 @@ import { CreateAccountDto } from './dto/create-account.dto';
 import { LoginPasswordDto } from './dto/login-password.dto';
 import { AccountAlreadyExistsException } from './exceptions/account-already-exists.exception';
 import { AccountNotExistsException } from './exceptions/account-not-exists.exception';
+import { PasswordNotDifferentException } from './exceptions/password-not-different.exception';
 
 @Controller('account')
 @UseGuards(AuthGuard)
@@ -106,6 +108,10 @@ export class AccountController {
 
       return new AccountDto(account);
     } catch (error) {
+      if (error instanceof PasswordNotDifferentException) {
+        throw new BadRequestException(error.message);
+      }
+
       throw new UnauthorizedException(
         error instanceof Exception ? error.message : null,
       );
