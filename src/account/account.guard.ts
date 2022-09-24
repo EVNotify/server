@@ -4,13 +4,14 @@ import {
   ExecutionContext,
   BadRequestException,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Exception } from 'src/utils/exception';
 import { AccountService } from './account.service';
 import { GUEST_ROLE_NAME } from './decorators/guest.decorator';
 import { AccountDto, AKEY_LENGTH, TOKEN_LENGTH } from './dto/account.dto';
 import { LoginTokenDto } from './dto/login-token.dto';
-import { AuthenticationException } from './exceptions/authentication.exception';
 import { AuthorizationException } from './exceptions/authorization.exception';
 import { Account } from './schemas/account.schema';
 
@@ -55,6 +56,11 @@ export class AuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const account = this.extractAuth(request);
+
+    if (request.params.akey !== account.akey) {
+      throw new ForbiddenException('AKey mismatch');
+    }
+
     const dto = new LoginTokenDto();
 
     dto.token = account.token;
@@ -65,7 +71,7 @@ export class AuthGuard implements CanActivate {
       return Promise.resolve(true);
     } catch (error) {
       throw new UnauthorizedException(
-        error instanceof AuthenticationException ? error.message : null,
+        error instanceof Exception ? error.message : null,
       );
     }
   }
