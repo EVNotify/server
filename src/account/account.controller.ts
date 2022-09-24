@@ -13,6 +13,7 @@ import {
 import { AuthGuard } from './account.guard';
 import { AccountService } from './account.service';
 import { Guest } from './decorators/guest.decorator';
+import { AccountDto } from './dto/account.dto';
 import { ChangePasswordDto } from './dto/change-password';
 import { ChangeTokenDto } from './dto/change-token.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
@@ -45,7 +46,7 @@ export class AccountController {
       throw new NotFoundException('Account does not exist');
     }
 
-    return account;
+    return new AccountDto(account);
   }
 
   @Patch(':akey/token')
