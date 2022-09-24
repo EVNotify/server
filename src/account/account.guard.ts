@@ -6,14 +6,20 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { AccountService } from './account.service';
 import { GUEST_ROLE_NAME } from './decorators/guest.decorator';
 import { AccountDto, AKEY_LENGTH, TOKEN_LENGTH } from './dto/account.dto';
+import { LoginTokenDto } from './dto/login-token.dto';
+import { AuthenticationException } from './exceptions/authentication.exception';
 import { AuthorizationException } from './exceptions/authorization.exception';
 import { Account } from './schemas/account.schema';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private readonly accountService: AccountService,
+  ) {}
 
   extractAuth(request): AccountDto | null {
     try {
@@ -40,7 +46,7 @@ export class AuthGuard implements CanActivate {
     }
   }
 
-  canActivate(context: ExecutionContext): Promise<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const role = this.reflector.get<string>('role', context.getHandler());
 
     if (role === GUEST_ROLE_NAME) {
@@ -49,9 +55,18 @@ export class AuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const account = this.extractAuth(request);
+    const dto = new LoginTokenDto();
 
-    // TODO validate
-    console.log(account);
-    return;
+    dto.token = account.token;
+
+    try {
+      await this.accountService.loginWithToken(account.akey, dto);
+
+      return Promise.resolve(true);
+    } catch (error) {
+      throw new UnauthorizedException(
+        error instanceof AuthenticationException ? error.message : null,
+      );
+    }
   }
 }
