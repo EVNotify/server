@@ -81,9 +81,30 @@ export class AccountService {
     return account;
   }
 
-  async changeToken(akey: string, changeTokenDto: ChangeTokenDto) {
-    console.log(changeTokenDto);
-    return `This action updates a #${akey} account`;
+  async changeToken(
+    akey: string,
+    changeTokenDto: ChangeTokenDto,
+  ): Promise<Account> {
+    const loginDto = new LoginPasswordDto();
+
+    loginDto.password = changeTokenDto.password;
+
+    const account = await this.loginWithPassword(akey, loginDto);
+
+    account.token = randomBytes(10).toString('hex');
+
+    await this.accountModel.updateOne(
+      {
+        akey: account.akey,
+      },
+      {
+        $set: {
+          token: account.token,
+        },
+      },
+    );
+
+    return account;
   }
 
   async changePassword(akey: string, changePasswordDto: ChangePasswordDto) {

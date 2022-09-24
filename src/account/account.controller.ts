@@ -75,11 +75,22 @@ export class AccountController {
   }
 
   @Patch(':akey/token')
-  changeToken(
+  async changeToken(
     @Param('akey') akey: string,
     @Body() changeTokenDto: ChangeTokenDto,
   ) {
-    return this.accountService.changeToken(akey, changeTokenDto);
+    try {
+      const account = await this.accountService.changeToken(
+        akey,
+        changeTokenDto,
+      );
+
+      return new AccountDto(account);
+    } catch (error) {
+      throw new UnauthorizedException(
+        error instanceof Exception ? error.message : null,
+      );
+    }
   }
 
   @Patch(':akey/password')
