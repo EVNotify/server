@@ -36,7 +36,7 @@ export class AccountService {
     return new AccountDto(account);
   }
 
-  async findOne(akey: string): Promise<Account> {
+  async findOne(akey: string): Promise<Account | null> {
     return this.accountModel.findOne({ akey });
   }
 
