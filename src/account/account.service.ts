@@ -28,7 +28,7 @@ export class AccountService {
     const account = new Account();
 
     account.akey = createAccountDto.akey;
-    account.passwordHash = await bcrypt.hash(createAccountDto.password, 10);
+    account.passwordHash = await this.hash(createAccountDto.password);
     account.token = this.token();
 
     await new this.accountModel(account).save();
@@ -107,12 +107,37 @@ export class AccountService {
     return account;
   }
 
-  async changePassword(akey: string, changePasswordDto: ChangePasswordDto) {
-    console.log(changePasswordDto);
-    return '';
+  async changePassword(
+    akey: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<Account> {
+    const loginDto = new LoginPasswordDto();
+
+    loginDto.password = changePasswordDto.password;
+
+    const account = await this.loginWithPassword(akey, loginDto);
+
+    account.passwordHash = await this.hash(changePasswordDto.newPassword);
+
+    await this.accountModel.updateOne(
+      {
+        akey: account.akey,
+      },
+      {
+        $set: {
+          passwordHash: account.passwordHash,
+        },
+      },
+    );
+
+    return account;
   }
 
   private token(): string {
     return randomBytes(10).toString('hex');
+  }
+
+  private async hash(password: string): Promise<string> {
+    return await bcrypt.hash(password, 10);
   }
 }

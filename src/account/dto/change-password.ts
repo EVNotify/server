@@ -6,4 +6,9 @@ export class ChangePasswordDto {
   @IsNotEmpty()
   @Length(PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH)
   password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Length(PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH)
+  newPassword: string;
 }

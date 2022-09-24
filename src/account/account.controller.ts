@@ -94,10 +94,21 @@ export class AccountController {
   }
 
   @Patch(':akey/password')
-  changePassword(
+  async changePassword(
     @Param('akey') akey: string,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
-    return this.accountService.changePassword(akey, changePasswordDto);
+    try {
+      const account = await this.accountService.changePassword(
+        akey,
+        changePasswordDto,
+      );
+
+      return new AccountDto(account);
+    } catch (error) {
+      throw new UnauthorizedException(
+        error instanceof Exception ? error.message : null,
+      );
+    }
   }
 }
