@@ -8,7 +8,7 @@ import { randomBytes } from 'crypto';
 import { AccountDto } from './dto/account.dto';
 import { AccountAlreadyExistsException } from './exceptions/account-already-exists.exception';
 import { ChangeTokenDto } from './dto/change-token.dto';
-import { ChangePasswordDto } from './dto/change-password';
+import { ChangePasswordDto } from './dto/change-password-dto';
 import { AccountNotExistsException } from './exceptions/account-not-exists.exception';
 import { AuthenticationException } from './exceptions/authentication.exception';
 import { LoginPasswordDto } from './dto/login-password.dto';
