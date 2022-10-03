@@ -45,6 +45,23 @@ export class AccountController {
     }
   }
 
+  @Guest()
+  @Get('/akey')
+  async availableAKey() {
+    let retries = 0;
+    let akey = this.accountService.akey();
+
+    while (await this.accountService.findOne(akey)) {
+      if (retries++ === 10) {
+        throw new InternalServerErrorException('AKey generation error');
+      }
+
+      akey = this.accountService.akey();
+    }
+
+    return new AvailableAKeyDto(akey);
+  }
+
   @Get(':akey')
   async findOne(@Param('akey') akey: string) {
     const account = await this.accountService.findOne(akey);

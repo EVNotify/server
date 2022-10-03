@@ -142,6 +142,10 @@ export class AccountService {
     return account;
   }
 
+  public akey(): string {
+    return randomBytes(3).toString('hex');
+  }
+
   private token(): string {
     return randomBytes(10).toString('hex');
   }
