@@ -12,6 +12,7 @@ import { CARS } from '../entities/car.entity';
 import { CONSUMPTION_UNITS } from '../entities/consumption.entity';
 import { LANGUAGES } from '../entities/language.entity';
 import { RANGE_UNITS } from '../entities/range.entity';
+import { Settings } from '../schemas/settings.schema';
 
 export const FIELDS = [
   'logSummary',
@@ -26,6 +27,18 @@ export const FIELDS = [
 ];
 
 export class SettingDto {
+  constructor(settings: Settings | null) {
+    this.logSummary = settings?.logSummary;
+    this.socThreshold = settings?.socThreshold;
+    this.language = settings?.language;
+    this.car = settings?.car;
+    this.capacity = settings?.capacity;
+    this.consumption = settings?.consumption;
+    this.consumptionUnit = settings?.consumptionUnit;
+    this.rangeUnit = settings?.rangeUnit;
+    this.device = settings?.device;
+  }
+
   @IsBoolean()
   @IsOptional()
   logSummary: boolean;

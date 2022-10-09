@@ -30,6 +30,9 @@ export class Settings {
   @Prop()
   capacity: number;
 
+  @Prop()
+  consumption: number;
+
   @Prop({ enum: CONSUMPTION_UNITS })
   consumptionUnit: string;
 

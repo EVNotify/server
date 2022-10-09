@@ -13,7 +13,7 @@ export class SettingsController {
 
   @Get(':akey')
   findOne(@Param('akey') akey: string) {
-    return 'find one akey';
+    return this.settingsService.findOne(akey);
   }
 
   @Get(':akey/:field')
