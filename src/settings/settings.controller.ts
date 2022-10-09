@@ -17,6 +17,7 @@ export class SettingsController {
   }
 
   @Get(':akey/:field')
+  @SettingsField()
   findOneSetting(@Param('akey') akey: string) {
     return 'find one akey setting';
   }

@@ -8,7 +8,7 @@ import { Reflector } from '@nestjs/core';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { FIELD_TYPE_SETTINGS } from './decorators/settings-field.decorator';
-import { SettingDto } from './dto/setting.dto';
+import { FIELDS, SettingDto } from './dto/setting.dto';
 
 @Injectable()
 export class SettingsGuard implements CanActivate {
@@ -23,15 +23,26 @@ export class SettingsGuard implements CanActivate {
       return Promise.resolve(true);
     }
 
-    const params = context.switchToHttp().getRequest().body;
-    const dto = plainToInstance(SettingDto, params);
+    const req = context.switchToHttp().getRequest();
+    let params = [];
 
-    if (!Object.keys(dto).length) {
+    if (req.params.field) {
+      params[req.params.field] = null;
+    } else {
+      params = req.body;
+    }
+
+    const hasSettingsField = Object.keys(params).some((field) => {
+      return FIELDS.some((dtoField) => dtoField === field);
+    });
+
+    if (!hasSettingsField) {
       throw new BadRequestException(
-        'One or more setting fields must be specified within request body',
+        'One or more setting fields must be specified within request params or body',
       );
     }
 
+    const dto = plainToInstance(SettingDto, params);
     const errors = await validate(dto, { skipMissingProperties: true });
 
     if (errors.length) {

@@ -13,6 +13,18 @@ import { CONSUMPTION_UNITS } from '../entities/consumption.entity';
 import { LANGUAGES } from '../entities/language.entity';
 import { RANGE_UNITS } from '../entities/range.entity';
 
+export const FIELDS = [
+  'logSummary',
+  'socThreshold',
+  'language',
+  'car',
+  'capacity',
+  'consumption',
+  'consumptionUnit',
+  'rangeUnit',
+  'device',
+];
+
 export class SettingDto {
   @IsBoolean()
   @IsOptional()
