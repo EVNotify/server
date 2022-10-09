@@ -1,6 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { CARS } from '../entities/car.entity';
+import { CONSUMPTION_UNITS } from '../entities/consumption.entity';
 import { LANGUAGES } from '../entities/language.entity';
+import { RANGE_UNITS } from '../entities/range.entity';
 
 export type SettingsDocument = Settings & Document;
 
@@ -20,6 +23,21 @@ export class Settings {
 
   @Prop({ enum: LANGUAGES })
   language: string;
+
+  @Prop({ enum: CARS })
+  car: string;
+
+  @Prop()
+  capacity: number;
+
+  @Prop({ enum: CONSUMPTION_UNITS })
+  consumptionUnit: string;
+
+  @Prop({ enum: RANGE_UNITS })
+  rangeUnit: string;
+
+  @Prop()
+  device: string;
 }
 
 export const SettingsSchema = SchemaFactory.createForClass(Settings);
