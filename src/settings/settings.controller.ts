@@ -27,10 +27,4 @@ export class SettingsController {
     console.log(settingDto);
     return 'update one akey';
   }
-
-  @Patch(':akey/:field')
-  @SettingsField()
-  updateSetting(@Param('akey') akey: string, @Body() settingDto: SettingDto) {
-    return 'update one akey setting';
-  }
 }
