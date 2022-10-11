@@ -25,7 +25,6 @@ export class SettingsController {
   @Patch(':akey')
   @SettingsField()
   update(@Param('akey') akey: string, @Body() settingDto: SettingDto) {
-    console.log(settingDto);
-    return 'update one akey';
+    return this.settingsService.update(akey, settingDto);
   }
 }

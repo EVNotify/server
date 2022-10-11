@@ -24,8 +24,17 @@ export class SettingsService {
     return Promise.resolve(new SettingDto(settings));
   }
 
-  update(id: number): void {
-    // findOne
-    // updaten
+  async update(akey: string, object: SettingDto): Promise<SettingDto> {
+    const settings = await this.settingsModel.findOneAndUpdate(
+      { akey },
+      object,
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      },
+    );
+
+    return Promise.resolve(new SettingDto(settings));
   }
 }
