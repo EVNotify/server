@@ -10,11 +10,15 @@ export class SettingsService {
     @InjectModel(Settings.name) private settingsModel: Model<Settings>,
   ) {}
 
-  async findOne(akey: string): Promise<SettingDto> {
-    let settings = await this.settingsModel.findOne({ akey });
+  async findOne(akey: string, field?: string): Promise<SettingDto> {
+    let settings = await this.settingsModel.findOne({ akey }).select(field);
 
     if (!settings) {
       settings = await this.settingsModel.create({ akey });
+
+      if (field) {
+        settings = await this.settingsModel.findOne({ akey }).select(field);
+      }
     }
 
     return Promise.resolve(new SettingDto(settings));

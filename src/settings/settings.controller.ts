@@ -18,8 +18,8 @@ export class SettingsController {
 
   @Get(':akey/:field')
   @SettingsField()
-  findOneSetting(@Param('akey') akey: string) {
-    return 'find one akey setting';
+  findOneSetting(@Param('akey') akey: string, @Param('field') field: string) {
+    return this.settingsService.findOne(akey, field);
   }
 
   @Patch(':akey')
