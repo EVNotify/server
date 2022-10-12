@@ -27,10 +27,13 @@ export class Log {
     default: STATUS.RUNNING,
     enum: STATUS,
   })
-  status: string;
+  status: STATUS;
 
   @Prop({ default: false })
   isCharge: boolean;
+
+  @Prop()
+  startDate: Date;
 
   @Prop()
   endDate: Date;
@@ -80,7 +83,9 @@ export class Log {
   @Prop()
   averageKW: number;
 
-  @Prop()
+  @Prop({
+    min: 0,
+  })
   distance: number;
 
   @Prop({
