@@ -27,7 +27,11 @@ export class LogsService {
     return Promise.resolve(new LogDto(log));
   }
 
-  async update(akey: string, id: string, updateLogDto: UpdateLogDto) {
+  async update(
+    akey: string,
+    id: string,
+    updateLogDto: UpdateLogDto,
+  ): Promise<LogDto> {
     const log = await this.logModel.findOneAndUpdate(
       {
         akey,
@@ -44,7 +48,12 @@ export class LogsService {
 
   syncData() {}
 
-  remove(id: number) {
-    return `This action removes a #${id} log`;
+  async remove(akey: string, id: string): Promise<void> {
+    await this.logModel.deleteOne({
+      akey,
+      _id: id,
+    });
+
+    return Promise.resolve();
   }
 }

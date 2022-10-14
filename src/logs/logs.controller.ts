@@ -9,6 +9,7 @@ import {
   UseGuards,
   NotFoundException,
   InternalServerErrorException,
+  HttpCode,
 } from '@nestjs/common';
 import { LogsService } from './logs.service';
 import { UpdateLogDto } from './dto/update-log.dto';
@@ -24,7 +25,7 @@ export class LogsController {
   constructor(private readonly logsService: LogsService) {}
 
   @Get(':akey')
-  findAll(@Param('akey') akey: string) {
+  async findAll(@Param('akey') akey: string) {
     return this.logsService.findAll(akey);
   }
 
@@ -45,13 +46,12 @@ export class LogsController {
 
   @Post(':akey')
   // add new data to current log
-  syncData(@Param('akey') akey: string) {
+  async syncData(@Param('akey') akey: string) {
     return this.logsService.syncData();
   }
 
   @Patch(':akey/:id')
-  // update specific metadata for specified log
-  update(
+  async update(
     @Param('akey') akey: string,
     @Param('id') id: string,
     @Body() updateLogDto: UpdateLogDto,
@@ -60,8 +60,8 @@ export class LogsController {
   }
 
   @Delete(':akey/:id')
-  // delete specified log
-  remove(@Param('akey') akey: string, @Param('id') id: string) {
-    return this.logsService.remove(+id);
+  @HttpCode(204)
+  async remove(@Param('akey') akey: string, @Param('id') id: string) {
+    await this.logsService.remove(akey, id);
   }
 }
