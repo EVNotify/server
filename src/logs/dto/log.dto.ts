@@ -15,6 +15,7 @@ import { Log } from '../schemas/log.schema';
 export class LogDto {
   constructor(log?: Log) {
     this.id = log?._id.toString();
+    this.updatedAt = log?.updatedAt;
     this.title = log?.title;
     this.status = log?.status;
     this.startDate = log?.startDate;
@@ -36,6 +37,10 @@ export class LogDto {
   @IsString()
   @IsNotEmpty()
   id: string;
+
+  @IsDate()
+  @IsNotEmpty()
+  updatedAt: Date;
 
   @IsString()
   @IsOptional()

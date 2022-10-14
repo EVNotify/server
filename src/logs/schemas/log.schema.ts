@@ -13,6 +13,8 @@ export type LogDocument = Log & Document;
 export class Log {
   _id: Types.ObjectId;
 
+  updatedAt: Date;
+
   @Prop({
     required: true,
     minlength: AKEY_LENGTH,
