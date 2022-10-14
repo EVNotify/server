@@ -6,41 +6,47 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { LogsService } from './logs.service';
 import { UpdateLogDto } from './dto/update-log.dto';
+import { AuthGuard } from 'src/account/account.guard';
 
 @Controller('logs')
+@UseGuards(AuthGuard)
 export class LogsController {
   constructor(private readonly logsService: LogsService) {}
 
-  @Get()
-  // find all logs
-  findAll() {
-    return this.logsService.findAll();
+  @Get(':akey')
+  findAll(@Param('akey') akey: string) {
+    return this.logsService.findAll(akey);
   }
 
-  @Get(':id')
+  @Get(':akey/:id')
   // find one specific log
-  findOne(@Param('id') id: string) {
-    return this.logsService.findOne(+id);
+  findOne(@Param('akey') akey: string, @Param('id') id: string) {
+    return this.logsService.findOne(akey, id);
   }
 
-  @Post()
+  @Post(':akey')
   // add new data to current log
-  syncData() {
+  syncData(@Param('akey') akey: string) {
     return this.logsService.syncData();
   }
 
-  @Patch(':id')
+  @Patch(':akey/:id')
   // update specific metadata for specified log
-  update(@Param('id') id: string, @Body() updateLogDto: UpdateLogDto) {
+  update(
+    @Param('akey') akey: string,
+    @Param('id') id: string,
+    @Body() updateLogDto: UpdateLogDto,
+  ) {
     return this.logsService.update(+id, updateLogDto);
   }
 
-  @Delete(':id')
+  @Delete(':akey/:id')
   // delete specified log
-  remove(@Param('id') id: string) {
+  remove(@Param('akey') akey: string, @Param('id') id: string) {
     return this.logsService.remove(+id);
   }
 }

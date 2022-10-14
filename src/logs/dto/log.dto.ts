@@ -13,7 +13,8 @@ import { STATUS } from '../entities/status.entity';
 import { Log } from '../schemas/log.schema';
 
 export class LogDto {
-  constructor(log: Log | null) {
+  constructor(log?: Log) {
+    this.id = log?._id.toString();
     this.title = log?.title;
     this.status = log?.status;
     this.startDate = log?.startDate;
@@ -31,6 +32,10 @@ export class LogDto {
     this.distance = log?.distance;
     this.averageSpeed = log?.averageSpeed;
   }
+
+  @IsString()
+  @IsNotEmpty()
+  id: string;
 
   @IsString()
   @IsOptional()

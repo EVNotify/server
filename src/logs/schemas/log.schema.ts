@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { AKEY_LENGTH } from 'src/account/dto/account.dto';
 import { STATUS } from '../entities/status.entity';
 
@@ -11,11 +11,13 @@ export type LogDocument = Log & Document;
   },
 })
 export class Log {
+  _id: Types.ObjectId;
+
   @Prop({
     required: true,
-    unique: true,
     minlength: AKEY_LENGTH,
     maxlength: AKEY_LENGTH,
+    ref: 'Account',
   })
   akey: string;
 
