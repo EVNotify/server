@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { LogDto } from './dto/log.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
+import { LogNotExistsException } from './exceptions/log-not-exists.exception';
 import { Log } from './schemas/log.schema';
 
 @Injectable()
@@ -16,10 +17,13 @@ export class LogsService {
     return Promise.resolve(logs.map((log) => new LogDto(log)));
   }
 
-  async findOne(akey: string, id: string) {
+  async findOne(akey: string, id: string): Promise<LogDto> {
     const log = await this.logModel.findOne({ akey, _id: id });
 
-    // TODO check if exists?
+    if (!log) {
+      throw new LogNotExistsException();
+    }
+
     return Promise.resolve(new LogDto(log));
   }
 

@@ -7,10 +7,14 @@ import {
   Param,
   Delete,
   UseGuards,
+  NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { LogsService } from './logs.service';
 import { UpdateLogDto } from './dto/update-log.dto';
 import { AuthGuard } from 'src/account/account.guard';
+import { LogNotExistsException } from './exceptions/log-not-exists.exception';
+import { Exception } from 'src/utils/exception';
 
 @Controller('logs')
 @UseGuards(AuthGuard)
@@ -23,9 +27,18 @@ export class LogsController {
   }
 
   @Get(':akey/:id')
-  // find one specific log
-  findOne(@Param('akey') akey: string, @Param('id') id: string) {
-    return this.logsService.findOne(akey, id);
+  async findOne(@Param('akey') akey: string, @Param('id') id: string) {
+    try {
+      return await this.logsService.findOne(akey, id);
+    } catch (error) {
+      if (error instanceof LogNotExistsException) {
+        return new NotFoundException(error.message);
+      }
+
+      return new InternalServerErrorException(
+        error instanceof Exception ? error.message : null,
+      );
+    }
   }
 
   @Post(':akey')
