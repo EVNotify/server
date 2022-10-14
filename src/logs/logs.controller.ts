@@ -17,6 +17,8 @@ import { LogNotExistsException } from './exceptions/log-not-exists.exception';
 import { Exception } from 'src/utils/exception';
 
 @Controller('logs')
+// Guard for log field?
+// Guard to check if log id belongs to user?
 @UseGuards(AuthGuard)
 export class LogsController {
   constructor(private readonly logsService: LogsService) {}
@@ -54,7 +56,7 @@ export class LogsController {
     @Param('id') id: string,
     @Body() updateLogDto: UpdateLogDto,
   ) {
-    return this.logsService.update(+id, updateLogDto);
+    return this.logsService.update(akey, id, updateLogDto);
   }
 
   @Delete(':akey/:id')

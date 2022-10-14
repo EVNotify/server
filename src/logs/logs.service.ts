@@ -27,8 +27,19 @@ export class LogsService {
     return Promise.resolve(new LogDto(log));
   }
 
-  update(id: number, updateLogDto: UpdateLogDto) {
-    return `This action updates a #${id} log`;
+  async update(akey: string, id: string, updateLogDto: UpdateLogDto) {
+    const log = await this.logModel.findOneAndUpdate(
+      {
+        akey,
+        _id: id,
+      },
+      updateLogDto,
+      {
+        new: true,
+      },
+    );
+
+    return Promise.resolve(new LogDto(log));
   }
 
   syncData() {}
