@@ -7,20 +7,17 @@ import {
   Param,
   Delete,
   UseGuards,
-  NotFoundException,
-  InternalServerErrorException,
   HttpCode,
 } from '@nestjs/common';
 import { LogsService } from './logs.service';
 import { UpdateLogDto } from './dto/update-log.dto';
 import { AuthGuard } from 'src/account/account.guard';
-import { LogNotExistsException } from './exceptions/log-not-exists.exception';
-import { Exception } from 'src/utils/exception';
+import { LogsGuard } from './logs.guard';
+import { OwnsLog } from './decorators/owns-log.decorator';
 
 @Controller('logs')
-// Guard for log field?
-// Guard to check if log id belongs to user?
 @UseGuards(AuthGuard)
+@UseGuards(LogsGuard)
 export class LogsController {
   constructor(private readonly logsService: LogsService) {}
 
@@ -30,18 +27,9 @@ export class LogsController {
   }
 
   @Get(':akey/:id')
+  @OwnsLog()
   async findOne(@Param('akey') akey: string, @Param('id') id: string) {
-    try {
-      return await this.logsService.findOne(akey, id);
-    } catch (error) {
-      if (error instanceof LogNotExistsException) {
-        return new NotFoundException(error.message);
-      }
-
-      return new InternalServerErrorException(
-        error instanceof Exception ? error.message : null,
-      );
-    }
+    return await this.logsService.findOne(akey, id);
   }
 
   @Post(':akey')
@@ -51,6 +39,7 @@ export class LogsController {
   }
 
   @Patch(':akey/:id')
+  @OwnsLog()
   async update(
     @Param('akey') akey: string,
     @Param('id') id: string,
@@ -60,6 +49,7 @@ export class LogsController {
   }
 
   @Delete(':akey/:id')
+  @OwnsLog()
   @HttpCode(204)
   async remove(@Param('akey') akey: string, @Param('id') id: string) {
     await this.logsService.remove(akey, id);
