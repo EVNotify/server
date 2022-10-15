@@ -12,6 +12,16 @@ import { Sync } from './schemas/sync.schema';
 export class LogsService {
   constructor(@InjectModel(Log.name) private logModel: Model<Log>) {}
 
+  private removeUnsetSyncFields(sync: Sync): Sync {
+    for (const field in sync) {
+      if (sync[field] == null) {
+        delete sync[field];
+      }
+    }
+
+    return sync;
+  }
+
   async findAll(akey: string): Promise<LogDto[]> {
     await this.logModel.create({ akey });
     const logs = await this.logModel.find({ akey });
@@ -49,16 +59,15 @@ export class LogsService {
   }
 
   async syncData(akey: string, syncDto: SyncDto) {
-    const sync = new Sync();
+    let sync = new Sync(syncDto);
 
-    sync.speed = 3;
-    sync.latitude = 3435;
+    sync = this.removeUnsetSyncFields(sync);
 
     // find current open log
     await this.logModel.updateOne(
       {
         akey,
-        _id: '6349ce0156f67979f14ce855',
+        _id: '634a9a02b769eaa7eb5d8bf5',
       },
       {
         $push: {
