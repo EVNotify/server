@@ -14,6 +14,7 @@ import { UpdateLogDto } from './dto/update-log.dto';
 import { AuthGuard } from 'src/account/account.guard';
 import { LogsGuard } from './logs.guard';
 import { OwnsLog } from './decorators/owns-log.decorator';
+import { SyncDto } from './dto/sync.dto';
 
 @Controller('logs')
 @UseGuards(AuthGuard)
@@ -34,8 +35,8 @@ export class LogsController {
 
   @Post(':akey')
   // add new data to current log
-  async syncData(@Param('akey') akey: string) {
-    return this.logsService.syncData();
+  async syncData(@Param('akey') akey: string, @Body() syncDto: SyncDto) {
+    return this.logsService.syncData(akey, syncDto);
   }
 
   @Patch(':akey/:id')

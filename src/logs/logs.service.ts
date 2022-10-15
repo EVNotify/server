@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { LogDto } from './dto/log.dto';
+import { SyncDto } from './dto/sync.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
 import { LogNotExistsException } from './exceptions/log-not-exists.exception';
 import { Log } from './schemas/log.schema';
+import { Sync } from './schemas/sync.schema';
 
 @Injectable()
 export class LogsService {
@@ -46,7 +48,25 @@ export class LogsService {
     return Promise.resolve(new LogDto(log));
   }
 
-  syncData() {}
+  async syncData(akey: string, syncDto: SyncDto) {
+    const sync = new Sync();
+
+    sync.speed = 3;
+    sync.latitude = 3435;
+
+    // find current open log
+    await this.logModel.updateOne(
+      {
+        akey,
+        _id: '6349ce0156f67979f14ce855',
+      },
+      {
+        $push: {
+          history: sync,
+        },
+      },
+    );
+  }
 
   async remove(akey: string, id: string): Promise<void> {
     await this.logModel.deleteOne({

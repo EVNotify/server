@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { AKEY_LENGTH } from 'src/account/dto/account.dto';
 import { STATUS } from '../entities/status.entity';
+import { Sync } from './sync.schema';
 
 export type LogDocument = Log & Document;
 
@@ -96,6 +97,9 @@ export class Log {
     min: 0,
   })
   averageSpeed: number;
+
+  @Prop()
+  history: [Sync];
 }
 
 export const LogSchema = SchemaFactory.createForClass(Log);
