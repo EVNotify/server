@@ -30,11 +30,10 @@ export class LogsController {
   @Get(':akey/:id')
   @OwnsLog()
   async findOne(@Param('akey') akey: string, @Param('id') id: string) {
-    return await this.logsService.findOne(akey, id);
+    return this.logsService.findOne(akey, id);
   }
 
   @Post(':akey')
-  // add new data to current log
   async syncData(@Param('akey') akey: string, @Body() syncDto: SyncDto) {
     return this.logsService.syncData(akey, syncDto);
   }
