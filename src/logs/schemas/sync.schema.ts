@@ -9,6 +9,7 @@ export class Sync {
     this.altitude = syncDto?.altitude;
     this.accuracy = syncDto?.accuracy;
     this.speed = syncDto?.speed;
+    this.charging = syncDto?.charging;
   }
 
   timestamp: Date;
@@ -27,4 +28,7 @@ export class Sync {
 
   @Prop()
   speed: number;
+
+  @Prop()
+  charging: boolean;
 }

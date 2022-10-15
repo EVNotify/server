@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { LogDto } from './dto/log.dto';
 import { SyncDto } from './dto/sync.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
+import { LOG_OUTDATED_SECONDS_TIMEOUT } from './entities/log.entity';
+import { STATUS } from './entities/status.entity';
 import { LogNotExistsException } from './exceptions/log-not-exists.exception';
 import { Log } from './schemas/log.schema';
 import { Sync } from './schemas/sync.schema';
@@ -22,8 +24,35 @@ export class LogsService {
     return sync;
   }
 
+  private async currentLog(akey: string, syncDto: SyncDto): Promise<Log> {
+    const log = await this.logModel.findOne(
+      {
+        akey,
+        status: STATUS.RUNNING,
+        updatedAt: {
+          $gt: new Date(
+            new Date().getTime() - LOG_OUTDATED_SECONDS_TIMEOUT * 1000,
+          ),
+        },
+      },
+      null,
+      { sort: { startDate: 'desc' } },
+    );
+
+    if (!log) {
+      return await this.logModel.create({ akey });
+    } else {
+      if (syncDto.charging != null && syncDto.charging !== log.isCharge) {
+        log.status = STATUS.FINISHED;
+        await log.save();
+        return await this.logModel.create({ akey });
+      }
+    }
+
+    return log;
+  }
+
   async findAll(akey: string): Promise<LogDto[]> {
-    await this.logModel.create({ akey });
     const logs = await this.logModel.find({ akey });
 
     return Promise.resolve(logs.map((log) => new LogDto(log)));
@@ -63,11 +92,14 @@ export class LogsService {
 
     sync = this.removeUnsetSyncFields(sync);
 
-    // find current open log
+    const log = await this.currentLog(akey, syncDto);
+
+    // update metadata
+
     await this.logModel.updateOne(
       {
         akey,
-        _id: '634a9a02b769eaa7eb5d8bf5',
+        _id: log._id,
       },
       {
         $push: {

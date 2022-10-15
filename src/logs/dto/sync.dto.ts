@@ -1,4 +1,4 @@
-import { IsDate, IsNumber, IsOptional } from 'class-validator';
+import { IsBoolean, IsDate, IsNumber, IsOptional } from 'class-validator';
 
 export class SyncDto {
   @IsDate()
@@ -24,4 +24,8 @@ export class SyncDto {
   @IsNumber()
   @IsOptional()
   speed: number;
+
+  @IsBoolean()
+  @IsOptional()
+  charging: boolean;
 }
