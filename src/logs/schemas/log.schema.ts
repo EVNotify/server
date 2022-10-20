@@ -34,7 +34,7 @@ export class Log {
   })
   status: STATUS;
 
-  @Prop({ default: false })
+  @Prop()
   isCharge: boolean;
 
   @Prop()

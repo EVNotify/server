@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { LogDto } from './dto/log.dto';
 import { SyncDto } from './dto/sync.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
-import { LOG_OUTDATED_SECONDS_TIMEOUT } from './entities/log.entity';
+import {
+  LOG_DATA_SYNCED_EVENT,
+  LOG_OUTDATED_SECONDS_TIMEOUT,
+} from './entities/log.entity';
 import { STATUS } from './entities/status.entity';
 import { LogNotExistsException } from './exceptions/log-not-exists.exception';
 import { Log } from './schemas/log.schema';
@@ -12,7 +16,10 @@ import { Sync } from './schemas/sync.schema';
 
 @Injectable()
 export class LogsService {
-  constructor(@InjectModel(Log.name) private logModel: Model<Log>) {}
+  constructor(
+    @InjectModel(Log.name) private logModel: Model<Log>,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   private removeUnsetSyncFields(sync: Sync): Sync {
     for (const field in sync) {
@@ -94,8 +101,6 @@ export class LogsService {
 
     const log = await this.currentLog(akey, syncDto);
 
-    // update metadata
-
     await this.logModel.updateOne(
       {
         akey,
@@ -107,6 +112,8 @@ export class LogsService {
         },
       },
     );
+
+    this.eventEmitter.emit(LOG_DATA_SYNCED_EVENT, { log, sync });
   }
 
   async remove(akey: string, id: string): Promise<void> {
