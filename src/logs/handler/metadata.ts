@@ -2,7 +2,10 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { LogDto } from '../dto/log.dto';
-import { LOG_DATA_SYNCED_EVENT } from '../entities/log.entity';
+import {
+  LOG_DATA_SYNCED_EVENT,
+  LOG_FINISHED_EVENT,
+} from '../entities/log.entity';
 import { STATUS } from '../entities/status.entity';
 import { Log } from '../schemas/log.schema';
 import { Sync } from '../schemas/sync.schema';
@@ -86,6 +89,39 @@ export class MetadataHandler {
     // TODO calculate distance
   }
 
+  private async setEndMetadata(log: Log) {
+    console.log(log);
+    log.endDate = new Date();
+
+    let endSOC;
+    let endODO;
+    let endCEC;
+    let endCED;
+
+    log.history.forEach((sync) => {
+      if (sync.socDisplay != null || sync.socBMS != null) {
+        endSOC = sync.socDisplay || sync.socBMS;
+      }
+
+      if (sync.odo != null) {
+        endODO = sync.odo;
+      }
+
+      if (sync.cec != null) {
+        endCEC = sync.cec;
+      }
+
+      if (sync.ced != null) {
+        endCED = sync.ced;
+      }
+    });
+
+    log.endSOC = endSOC;
+    log.endODO = endODO;
+    log.endCEC = endCEC;
+    log.endCED = endCED;
+  }
+
   private async saveMetadata(log: Log) {
     const dto = new LogDto(log);
 
@@ -103,5 +139,11 @@ export class MetadataHandler {
     this.setOneTimeMetadata(payload.log, payload.sync);
     this.setSummarizedMetadata(payload.log, payload.sync);
     this.saveMetadata(payload.log);
+  }
+
+  @OnEvent(LOG_FINISHED_EVENT)
+  async handleFinishedEvent(log: Log) {
+    this.setEndMetadata(log);
+    this.saveMetadata(log);
   }
 }

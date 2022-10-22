@@ -7,6 +7,7 @@ import { SyncDto } from './dto/sync.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
 import {
   LOG_DATA_SYNCED_EVENT,
+  LOG_FINISHED_EVENT,
   LOG_OUTDATED_SECONDS_TIMEOUT,
 } from './entities/log.entity';
 import { STATUS } from './entities/status.entity';
@@ -52,6 +53,8 @@ export class LogsService {
       if (syncDto.charging != null && syncDto.charging !== log.isCharge) {
         log.status = STATUS.FINISHED;
         await log.save();
+        this.eventEmitter.emit(LOG_FINISHED_EVENT, log);
+
         return await this.logModel.create({ akey });
       }
     }
