@@ -41,7 +41,50 @@ export class MetadataHandler {
     }
   }
 
-  private setSummarizedMetadata(log: Log, sync: Sync) {}
+  private setSummarizedMetadata(log: Log, sync: Sync) {
+    const summarizableFields = [
+      'dcBatteryPower',
+      'speed',
+      'latitude',
+      'longitude',
+    ];
+
+    if (
+      !Object.keys(sync).some((field) => summarizableFields.includes(field))
+    ) {
+      return;
+    }
+
+    const averageKWs = [];
+    const averageSpeeds = [];
+    const distances = []; // also support ODO?
+
+    log.history.forEach((entry) => {
+      if (entry.dcBatteryPower != null) {
+        averageKWs.push(entry.dcBatteryPower);
+      } else if (entry.speed != null) {
+        averageSpeeds.push(entry.speed);
+      } else if (entry.latitude != null && entry.longitude != null) {
+        distances.push({
+          latitude: entry.latitude,
+          longitude: entry.longitude,
+        });
+      }
+    });
+
+    if (sync.dcBatteryPower != null) {
+      log.averageKW =
+        averageKWs.reduce((a, b) => a + b, sync.dcBatteryPower) /
+        (averageKWs.length + 1);
+    }
+
+    if (sync.speed != null) {
+      log.averageSpeed =
+        averageSpeeds.reduce((a, b) => a + b, sync.speed) /
+        (averageSpeeds.length + 1);
+    }
+    // TODO calculate distance
+  }
 
   private async saveMetadata(log: Log) {
     const dto = new LogDto(log);
