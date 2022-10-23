@@ -1,4 +1,5 @@
 import { Controller, Get, Body, Patch, Param, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/account/account.guard';
 import { SettingsField } from './decorators/settings-field.decorator';
 import { SettingDto } from './dto/setting.dto';
@@ -8,6 +9,8 @@ import { SettingsService } from './settings.service';
 @Controller('settings')
 @UseGuards(AuthGuard)
 @UseGuards(SettingsGuard)
+@ApiTags('Settings')
+@ApiBearerAuth()
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
 
