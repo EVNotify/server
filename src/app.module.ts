@@ -5,12 +5,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AccountModule } from './account/account.module';
 import { SettingsModule } from './settings/settings.module';
 import { LogsModule } from './logs/logs.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     EventEmitterModule.forRoot(),
     MongooseModule.forRoot(process.env.DATABASE_URI),
+    ScheduleModule.forRoot(),
     AccountModule,
     SettingsModule,
     LogsModule,

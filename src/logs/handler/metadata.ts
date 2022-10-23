@@ -90,7 +90,6 @@ export class MetadataHandler {
   }
 
   private async setEndMetadata(log: Log) {
-    console.log(log);
     log.endDate = new Date();
 
     let endSOC;

@@ -7,10 +7,11 @@ import { Log, LogSchema } from './schemas/log.schema';
 import { MetadataHandler } from './handler/metadata';
 import { LastSyncHandler } from './handler/last-sync';
 import { LastSync, LastSyncSchema } from './schemas/last-sync.schema';
+import { CronHandler } from './handler/cron';
 
 @Module({
   controllers: [LogsController],
-  providers: [LogsService, MetadataHandler, LastSyncHandler],
+  providers: [LogsService, MetadataHandler, LastSyncHandler, CronHandler],
   imports: [
     AccountModule,
     MongooseModule.forFeature([
