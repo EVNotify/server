@@ -16,6 +16,9 @@ export class LastSync extends Sync {
     unique: true,
   })
   akey: string;
+
+  @Prop()
+  updatedAt: Date;
 }
 
 export const LastSyncSchema = SchemaFactory.createForClass(LastSync);

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { LastSyncDto } from './dto/last-sync.dto';
 import { LogDto } from './dto/log.dto';
 import { SyncDto } from './dto/sync.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
@@ -12,6 +13,7 @@ import {
 } from './entities/log.entity';
 import { STATUS } from './entities/status.entity';
 import { LogNotExistsException } from './exceptions/log-not-exists.exception';
+import { LastSync } from './schemas/last-sync.schema';
 import { Log } from './schemas/log.schema';
 import { Sync } from './schemas/sync.schema';
 
@@ -19,6 +21,7 @@ import { Sync } from './schemas/sync.schema';
 export class LogsService {
   constructor(
     @InjectModel(Log.name) private logModel: Model<Log>,
+    @InjectModel(LastSync.name) private lastSyncModel: Model<LastSync>,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -60,6 +63,12 @@ export class LogsService {
     }
 
     return log;
+  }
+
+  async lastSync(akey: string): Promise<LastSync> {
+    const lastSync = await this.lastSyncModel.findOne({ akey });
+
+    return new LastSyncDto(lastSync);
   }
 
   async findAll(akey: string): Promise<LogDto[]> {

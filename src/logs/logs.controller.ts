@@ -27,6 +27,11 @@ export class LogsController {
     return this.logsService.findAll(akey);
   }
 
+  @Get(':akey/last-sync')
+  async lastSync(@Param('akey') akey: string) {
+    return this.logsService.lastSync(akey);
+  }
+
   @Get(':akey/:id')
   @OwnsLog()
   async findOne(@Param('akey') akey: string, @Param('id') id: string) {
