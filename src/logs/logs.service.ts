@@ -72,19 +72,29 @@ export class LogsService {
   }
 
   async findAll(akey: string): Promise<LogDto[]> {
-    const logs = await this.logModel.find({ akey });
+    const logs = await this.logModel.find({ akey }).select('-history');
 
     return Promise.resolve(logs.map((log) => new LogDto(log)));
   }
 
   async findOne(akey: string, id: string): Promise<LogDto> {
-    const log = await this.logModel.findOne({ akey, _id: id });
+    const log = await this.logModel
+      .findOne({ akey, _id: id })
+      .select('-history');
 
     if (!log) {
       throw new LogNotExistsException();
     }
 
     return Promise.resolve(new LogDto(log));
+  }
+
+  async findOneWithHistory(akey: string, id: string) {
+    const log = await this.logModel
+      .findOne({ akey, _id: id })
+      .select('history');
+
+    return log.history;
   }
 
   async update(

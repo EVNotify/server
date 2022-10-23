@@ -38,6 +38,15 @@ export class LogsController {
     return this.logsService.findOne(akey, id);
   }
 
+  @Get(':akey/:id/history')
+  @OwnsLog()
+  async findOneWithHistory(
+    @Param('akey') akey: string,
+    @Param('id') id: string,
+  ) {
+    return this.logsService.findOneWithHistory(akey, id);
+  }
+
   @Post(':akey')
   async syncData(@Param('akey') akey: string, @Body() syncDto: SyncDto) {
     return this.logsService.syncData(akey, syncDto);
