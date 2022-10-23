@@ -20,6 +20,7 @@ async function bootstrap() {
     .addTag('Account')
     .addTag('Settings')
     .addTag('Logs & Sync')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
 
