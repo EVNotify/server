@@ -1,5 +1,5 @@
 import { Controller, Get, Body, Patch, Param, UseGuards } from '@nestjs/common';
-import { AuthGuard } from 'src/account/account.guard';
+import { AuthGuard } from '../account/account.guard';
 import { SettingsField } from './decorators/settings-field.decorator';
 import { SettingDto } from './dto/setting.dto';
 import { SettingsGuard } from './settings.guard';

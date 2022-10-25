@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { AKEY_LENGTH } from 'src/account/dto/account.dto';
+import { AKEY_LENGTH } from '../../account/dto/account.dto';
 import { Sync } from './sync.schema';
 
 export type LastSyncDocument = LastSync & Document;

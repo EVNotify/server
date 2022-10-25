@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { AKEY_LENGTH } from 'src/account/dto/account.dto';
+import { AKEY_LENGTH } from '../../account/dto/account.dto';
 import { STATUS } from '../entities/status.entity';
 import { Sync } from './sync.schema';
 
