@@ -34,4 +34,4 @@ jobs:
       - run: npm run build
       - run: npm test
         env:
-          DATABASE_URI: mongodb://evnotify:evnotify@127.0.0.1:27017/evnotify
+          DATABASE_URI: mongodb://evnotify:evnotify@127.0.0.1:27017/evnotify?authSource=admin
