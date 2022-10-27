@@ -12,7 +12,7 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
-import { Exception } from 'src/utils/exception';
+import { Exception } from '../utils/exception';
 import { AuthGuard } from './account.guard';
 import { AccountService } from './account.service';
 import { Guest } from './decorators/guest.decorator';

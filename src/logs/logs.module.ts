@@ -2,16 +2,23 @@ import { Module } from '@nestjs/common';
 import { LogsService } from './logs.service';
 import { LogsController } from './logs.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AccountModule } from 'src/account/account.module';
+import { AccountModule } from '../account/account.module';
 import { Log, LogSchema } from './schemas/log.schema';
 import { MetadataHandler } from './handler/metadata';
 import { LastSyncHandler } from './handler/last-sync';
 import { LastSync, LastSyncSchema } from './schemas/last-sync.schema';
 import { CronHandler } from './handler/cron';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Module({
   controllers: [LogsController],
-  providers: [LogsService, MetadataHandler, LastSyncHandler, CronHandler],
+  providers: [
+    LogsService,
+    MetadataHandler,
+    LastSyncHandler,
+    CronHandler,
+    EventEmitter2,
+  ],
   imports: [
     AccountModule,
     MongooseModule.forFeature([

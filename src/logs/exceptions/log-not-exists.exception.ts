@@ -1,4 +1,4 @@
-import { Exception } from 'src/utils/exception';
+import { Exception } from '../../utils/exception';
 
 export class LogNotExistsException extends Exception {
   constructor() {
