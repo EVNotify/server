@@ -1,5 +1,6 @@
 node_modules/
 dist/
 .env
+ecosystem.config.js
 .vscode/
 coverage/
