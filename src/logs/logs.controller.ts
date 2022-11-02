@@ -15,10 +15,13 @@ import { AuthGuard } from '../account/account.guard';
 import { LogsGuard } from './logs.guard';
 import { OwnsLog } from './decorators/owns-log.decorator';
 import { SyncDto } from './dto/sync.dto';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('logs')
 @UseGuards(AuthGuard)
 @UseGuards(LogsGuard)
+@ApiTags('Logs & Sync')
+@ApiBearerAuth()
 export class LogsController {
   constructor(private readonly logsService: LogsService) {}
 

@@ -12,6 +12,7 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Exception } from '../utils/exception';
 import { AuthGuard } from './account.guard';
 import { AccountService } from './account.service';
@@ -28,6 +29,7 @@ import { PasswordNotDifferentException } from './exceptions/password-not-differe
 
 @Controller('account')
 @UseGuards(AuthGuard)
+@ApiTags('Account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
@@ -63,6 +65,7 @@ export class AccountController {
   }
 
   @Get(':akey')
+  @ApiBearerAuth()
   async findOne(@Param('akey') akey: string) {
     const account = await this.accountService.findOne(akey);
 
@@ -95,6 +98,7 @@ export class AccountController {
   }
 
   @Patch(':akey/token')
+  @ApiBearerAuth()
   async changeToken(
     @Param('akey') akey: string,
     @Body() changeTokenDto: ChangeTokenDto,
@@ -114,6 +118,7 @@ export class AccountController {
   }
 
   @Patch(':akey/password')
+  @ApiBearerAuth()
   async changePassword(
     @Param('akey') akey: string,
     @Body() changePasswordDto: ChangePasswordDto,
