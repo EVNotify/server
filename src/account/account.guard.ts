@@ -7,7 +7,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Exception } from 'src/utils/exception';
+import { Exception } from '../utils/exception';
 import { AccountService } from './account.service';
 import { GUEST_ROLE_NAME } from './decorators/guest.decorator';
 import { AccountDto, AKEY_LENGTH, TOKEN_LENGTH } from './dto/account.dto';

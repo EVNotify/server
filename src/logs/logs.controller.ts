@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { LogsService } from './logs.service';
 import { UpdateLogDto } from './dto/update-log.dto';
-import { AuthGuard } from 'src/account/account.guard';
+import { AuthGuard } from '../account/account.guard';
 import { LogsGuard } from './logs.guard';
 import { OwnsLog } from './decorators/owns-log.decorator';
 import { SyncDto } from './dto/sync.dto';

@@ -13,7 +13,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Exception } from 'src/utils/exception';
+import { Exception } from '../utils/exception';
 import { AuthGuard } from './account.guard';
 import { AccountService } from './account.service';
 import { Guest } from './decorators/guest.decorator';
