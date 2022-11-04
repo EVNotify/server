@@ -38,7 +38,17 @@ export class AccountService {
   }
 
   async findOne(akey: string): Promise<Account | null> {
-    return this.accountModel.findOne({ akey });
+    // FIXME with manual promise and callback it worked in test, otherwise with await not
+    // timing issue? return await this.accountModel.findOne({ akey }).exec() should work normally
+    return new Promise((resolve) => {
+      this.accountModel.findOne({ akey }, null, null, (err, res) => {
+        if (err) {
+          return resolve(null);
+        }
+
+        return resolve(res);
+      });
+    });
   }
 
   async loginWithPassword(
