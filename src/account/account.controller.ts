@@ -111,6 +111,10 @@ export class AccountController {
 
       return new AccountDto(account);
     } catch (error) {
+      if (error instanceof AccountNotExistsException) {
+        throw new NotFoundException(error.message);
+      }
+
       throw new UnauthorizedException(
         error instanceof Exception ? error.message : null,
       );
@@ -131,7 +135,9 @@ export class AccountController {
 
       return new AccountDto(account);
     } catch (error) {
-      if (error instanceof PasswordNotDifferentException) {
+      if (error instanceof AccountNotExistsException) {
+        throw new NotFoundException(error.message);
+      } else if (error instanceof PasswordNotDifferentException) {
         throw new BadRequestException(error.message);
       }
 
