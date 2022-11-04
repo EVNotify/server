@@ -7,6 +7,9 @@ import { AccountController } from './account.controller';
 import { AccountModule } from './account.module';
 import { AKEY_LENGTH } from './dto/account.dto';
 import { AvailableAKeyDto } from './dto/available-akey.dto';
+import { ChangePasswordDto } from './dto/change-password-dto';
+import { ChangeTokenDto } from './dto/change-token.dto';
+import { LoginPasswordDto } from './dto/login-password.dto';
 
 describe('AccountController', () => {
   let controller: AccountController;
@@ -52,5 +55,34 @@ describe('AccountController', () => {
     }).rejects.toThrow(NotFoundException);
   });
 
-  test.todo('account info should be protected');
+  it('non existent user should not be able to login', async () => {
+    const dto = new LoginPasswordDto();
+
+    dto.password = 'password';
+
+    await expect(async () => {
+      await controller.login(randomAkey, dto);
+    }).rejects.toThrow(NotFoundException);
+  });
+
+  it('non existent user should not be able to change password', async () => {
+    const dto = new ChangePasswordDto();
+
+    dto.password = 'password';
+    dto.newPassword = 'newPassword';
+
+    await expect(async () => {
+      await controller.changePassword(randomAkey, dto);
+    }).rejects.toThrow(NotFoundException);
+  });
+
+  it('non existent user should not be able to change token', async () => {
+    const dto = new ChangeTokenDto();
+
+    dto.password = 'password';
+
+    await expect(async () => {
+      await controller.changeToken(randomAkey, dto);
+    }).rejects.toThrow(NotFoundException);
+  });
 });
