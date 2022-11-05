@@ -60,7 +60,7 @@ export class SettingDto {
   @IsNumber()
   @IsPositive()
   @IsOptional()
-  capacity: number;
+  capacity?: number;
 
   @IsNumber()
   @IsPositive()
