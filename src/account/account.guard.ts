@@ -57,7 +57,7 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const account = this.extractAuth(request);
 
-    if (request.params.akey !== account.akey) {
+    if (!request.params || request.params.akey !== account.akey) {
       throw new ForbiddenException('AKey mismatch');
     }
 

@@ -5,7 +5,7 @@ import { CreateAccountDto } from './dto/create-account.dto';
 import { Account } from './schemas/account.schema';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { AccountDto } from './dto/account.dto';
+import { AccountDto, AKEY_LENGTH, TOKEN_LENGTH } from './dto/account.dto';
 import { AccountAlreadyExistsException } from './exceptions/account-already-exists.exception';
 import { ChangeTokenDto } from './dto/change-token.dto';
 import { ChangePasswordDto } from './dto/change-password-dto';
@@ -38,7 +38,17 @@ export class AccountService {
   }
 
   async findOne(akey: string): Promise<Account | null> {
-    return this.accountModel.findOne({ akey });
+    // FIXME with manual promise and callback it worked in test, otherwise with await not
+    // timing issue? return await this.accountModel.findOne({ akey }).exec() should work normally
+    return new Promise((resolve) => {
+      this.accountModel.findOne({ akey }, null, null, (err, res) => {
+        if (err) {
+          return resolve(null);
+        }
+
+        return resolve(res);
+      });
+    });
   }
 
   async loginWithPassword(
@@ -143,11 +153,11 @@ export class AccountService {
   }
 
   public akey(): string {
-    return randomBytes(3).toString('hex');
+    return randomBytes(AKEY_LENGTH / 2).toString('hex');
   }
 
   private token(): string {
-    return randomBytes(10).toString('hex');
+    return randomBytes(TOKEN_LENGTH / 2).toString('hex');
   }
 
   private async hash(password: string): Promise<string> {
