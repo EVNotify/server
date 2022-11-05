@@ -4,6 +4,7 @@ import { CARS } from '../entities/car.entity';
 import { CONSUMPTION_UNITS } from '../entities/consumption.entity';
 import { LANGUAGES } from '../entities/language.entity';
 import { RANGE_UNITS } from '../entities/range.entity';
+import { SOC_THRESHOLD_DEFAULT } from '../entities/setting.entity';
 
 export type SettingsDocument = Settings & Document;
 
@@ -18,7 +19,7 @@ export class Settings {
   @Prop({ default: true })
   logSummary: boolean;
 
-  @Prop({ default: 70 })
+  @Prop({ default: SOC_THRESHOLD_DEFAULT })
   socThreshold: number;
 
   @Prop({ enum: LANGUAGES })
