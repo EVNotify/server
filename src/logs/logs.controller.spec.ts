@@ -7,6 +7,8 @@ import { CreateAccountDto } from '../account/dto/create-account.dto';
 import { AccountDto } from '../account/dto/account.dto';
 import { LogsController } from './logs.controller';
 import { LogsModule } from './logs.module';
+import { LogDto } from './dto/log.dto';
+import { NotFoundException } from '@nestjs/common';
 
 describe('LogsController', () => {
   let accountService: AccountService;
@@ -47,19 +49,38 @@ describe('LogsController', () => {
     expect(controller).toBeDefined();
   });
 
-  test.todo('should not be able to retrieve logs when there are none');
+  it('should not be able to retrieve logs when there are none', async () => {
+    const response = await controller.findAll(testAccount.akey);
 
-  test.todo('should not have last sync data');
+    expect(response.every((log) => log instanceof LogDto)).toBeTruthy();
+    expect(response).toHaveLength(0);
+  });
 
-  test.todo('should not have last sync data');
+  it('should not have last sync data', async () => {
+    const response = await controller.lastSync(testAccount.akey);
 
-  test.todo('should not be able to retrieve non-existing log');
+    expect(
+      Object.values(response).filter((value) => value != null),
+    ).toHaveLength(0);
+  });
 
-  test.todo('should not be able to retrieve history of non-existing log');
+  it('should not be able to retrieve non-existing log', async () => {
+    await expect(async () => {
+      await controller.findOne(
+        testAccount.akey,
+        new mongoose.Types.ObjectId().toString(),
+      );
+    }).rejects.toThrow(NotFoundException);
+  });
 
-  test.todo('should not be able to update non-existing log');
-
-  test.todo('should not be able to delete non-existing log');
+  it('should not be able to retrieve history of non-existing log', async () => {
+    await expect(async () => {
+      await controller.findOneWithHistory(
+        testAccount.akey,
+        new mongoose.Types.ObjectId().toString(),
+      );
+    }).rejects.toThrow(NotFoundException);
+  });
 
   test.todo('should not be able to sync data without any valid key');
 
@@ -86,4 +107,8 @@ describe('LogsController', () => {
   test.todo('should create a new log once charging started');
 
   test.todo('should contain two logs');
+
+  test.todo('should contain metadata');
+
+  test.todo('should update metadata when adding new data');
 });
