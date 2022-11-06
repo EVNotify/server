@@ -1,4 +1,4 @@
 export enum CONSUMPTION_UNITS {
-  kWh,
-  Wh,
+  kWh = 'kWh',
+  Wh = 'Wh',
 }
