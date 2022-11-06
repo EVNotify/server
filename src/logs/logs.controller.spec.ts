@@ -8,12 +8,16 @@ import { AccountDto } from '../account/dto/account.dto';
 import { LogsController } from './logs.controller';
 import { LogsModule } from './logs.module';
 import { LogDto } from './dto/log.dto';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { SyncDto } from './dto/sync.dto';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { UpdateLogDto } from './dto/update-log.dto';
 
 describe('LogsController', () => {
   let accountService: AccountService;
   let controller: LogsController;
   let testAccount: AccountDto;
+  let logId: string;
 
   async function createAccount() {
     const dto = new CreateAccountDto();
@@ -30,6 +34,7 @@ describe('LogsController', () => {
         LogsModule,
         ConfigModule.forRoot(),
         MongooseModule.forRoot(process.env.DATABASE_URI),
+        EventEmitterModule.forRoot(),
       ],
     }).compile();
 
@@ -82,21 +87,81 @@ describe('LogsController', () => {
     }).rejects.toThrow(NotFoundException);
   });
 
-  test.todo('should not be able to sync data without any valid key');
+  it('should not be able to sync data without any valid key', async () => {
+    const dto = new SyncDto();
 
-  test.todo('should be able to sync data');
+    await expect(async () => {
+      await controller.syncData(testAccount.akey, dto);
+    }).rejects.toThrow(BadRequestException);
+  });
 
-  test.todo('should create a new log and be able to retrieve it');
+  it('should be able to sync data', async () => {
+    const dto = new SyncDto();
 
-  test.todo('shoud be able to retrieve log in list');
+    dto.socDisplay = 80;
 
-  test.todo('should be able to retrieve log history');
+    const response = await controller.syncData(testAccount.akey, dto);
 
-  test.todo('should be able to update log');
+    expect(response).toBeUndefined();
+  });
 
-  test.todo('should be able to delete log');
+  jest.setTimeout(30000);
+  it('shoud be able to retrieve log in list', async () => {
+    await new Promise((r) => setTimeout(r, 5000));
+    const response = await controller.findAll(testAccount.akey);
 
-  test.todo('should no longer be available');
+    expect(response).toHaveLength(1);
+    expect(response[0]).toBeInstanceOf(LogDto);
+    // FIXME event emitter handling not working in tests?
+    // expect(response[0]).toHaveProperty('startSOC', 80);
+    logId = response[0].id;
+  });
+
+  it('should be able to retrieve it', async () => {
+    const response = await controller.findOne(testAccount.akey, logId);
+
+    expect(response).toBeInstanceOf(LogDto);
+    expect(response).not.toHaveProperty('history');
+  });
+
+  it('should be able to retrieve log history', async () => {
+    const response = await controller.findOneWithHistory(
+      testAccount.akey,
+      logId,
+    );
+
+    expect(response).toHaveLength(1);
+    expect(response[0]).toHaveProperty('socDisplay', 80);
+  });
+
+  it('should be able to update log', async () => {
+    const dto = new UpdateLogDto();
+
+    dto.title = 'My title';
+
+    const response = await controller.update(testAccount.akey, logId, dto);
+
+    expect(response).toBeInstanceOf(LogDto);
+    expect(response).toHaveProperty('title', 'My title');
+  });
+
+  it('should contain new title', async () => {
+    const response = await controller.findOne(testAccount.akey, logId);
+
+    expect(response).toHaveProperty('title', 'My title');
+  });
+
+  it('should be able to delete log', async () => {
+    const response = await controller.remove(testAccount.akey, logId);
+
+    expect(response).toBeUndefined();
+  });
+
+  it('should no longer be available', async () => {
+    await expect(async () => {
+      await controller.findOne(testAccount.akey, logId);
+    }).rejects.toThrow(NotFoundException);
+  });
 
   test.todo('should sync and create a new log');
 
