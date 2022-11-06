@@ -12,6 +12,7 @@ import {
   LOG_OUTDATED_SECONDS_TIMEOUT,
 } from './entities/log.entity';
 import { STATUS } from './entities/status.entity';
+import { LogMissingSyncDataException } from './exceptions/log-missing-sync-data.exception';
 import { LogNotExistsException } from './exceptions/log-not-exists.exception';
 import { LastSync } from './schemas/last-sync.schema';
 import { Log } from './schemas/log.schema';
@@ -94,6 +95,10 @@ export class LogsService {
       .findOne({ akey, _id: id })
       .select('history');
 
+    if (!log) {
+      throw new LogNotExistsException();
+    }
+
     return log.history;
   }
 
@@ -116,10 +121,14 @@ export class LogsService {
     return Promise.resolve(new LogDto(log));
   }
 
-  async syncData(akey: string, syncDto: SyncDto) {
+  async syncData(akey: string, syncDto: SyncDto): Promise<void> {
     let sync = new Sync(syncDto);
 
     sync = this.removeUnsetSyncFields(sync);
+
+    if (Object.keys(sync).length <= 1) {
+      throw new LogMissingSyncDataException();
+    }
 
     const log = await this.currentLog(akey, syncDto);
 
@@ -136,6 +145,8 @@ export class LogsService {
     );
 
     this.eventEmitter.emit(LOG_DATA_SYNCED_EVENT, { log, sync });
+
+    return Promise.resolve();
   }
 
   async remove(akey: string, id: string): Promise<void> {
