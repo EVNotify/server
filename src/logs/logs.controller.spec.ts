@@ -163,15 +163,50 @@ describe('LogsController', () => {
     }).rejects.toThrow(NotFoundException);
   });
 
-  test.todo('should sync and create a new log');
+  it('should sync and create a new log', async () => {
+    const dto = new SyncDto();
 
-  test.todo('should sync data again');
+    dto.socDisplay = 80;
 
-  test.todo('should contain two history records');
+    await controller.syncData(testAccount.akey, dto);
 
-  test.todo('should create a new log once charging started');
+    const response = await controller.findAll(testAccount.akey);
 
-  test.todo('should contain two logs');
+    expect(response).toHaveLength(1);
+
+    logId = response[0].id;
+  });
+
+  it('should sync data again', async () => {
+    const dto = new SyncDto();
+
+    dto.socDisplay = 81;
+
+    await controller.syncData(testAccount.akey, dto);
+  });
+
+  it('should contain two history records', async () => {
+    const response = await controller.findOneWithHistory(
+      testAccount.akey,
+      logId,
+    );
+
+    expect(response).toHaveLength(2);
+    expect(response.at(0)).toHaveProperty('socDisplay', 80);
+    expect(response.at(1)).toHaveProperty('socDisplay', 81);
+  });
+
+  it('should create a new log once charging started', async () => {
+    const dto = new SyncDto();
+
+    dto.charging = true;
+
+    await controller.syncData(testAccount.akey, dto);
+
+    const response = await controller.findAll(testAccount.akey);
+
+    expect(response).toHaveLength(2);
+  });
 
   test.todo('should contain metadata');
 
