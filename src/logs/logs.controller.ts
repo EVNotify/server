@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   HttpCode,
+  NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { LogsService } from './logs.service';
 import { UpdateLogDto } from './dto/update-log.dto';
@@ -16,6 +18,7 @@ import { LogsGuard } from './logs.guard';
 import { OwnsLog } from './decorators/owns-log.decorator';
 import { SyncDto } from './dto/sync.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { LogNotExistsException } from './exceptions/log-not-exists.exception';
 
 @Controller('logs')
 @UseGuards(AuthGuard)
@@ -38,7 +41,15 @@ export class LogsController {
   @Get(':akey/:id')
   @OwnsLog()
   async findOne(@Param('akey') akey: string, @Param('id') id: string) {
-    return this.logsService.findOne(akey, id);
+    try {
+      return await this.logsService.findOne(akey, id);
+    } catch (error) {
+      if (error instanceof LogNotExistsException) {
+        throw new NotFoundException(error.message);
+      }
+
+      throw new InternalServerErrorException();
+    }
   }
 
   @Get(':akey/:id/history')
@@ -47,7 +58,15 @@ export class LogsController {
     @Param('akey') akey: string,
     @Param('id') id: string,
   ) {
-    return this.logsService.findOneWithHistory(akey, id);
+    try {
+      return await this.logsService.findOneWithHistory(akey, id);
+    } catch (error) {
+      if (error instanceof LogNotExistsException) {
+        throw new NotFoundException(error.message);
+      }
+
+      throw new InternalServerErrorException();
+    }
   }
 
   @Post(':akey')
