@@ -41,21 +41,21 @@ export class SettingDto {
 
   @IsBoolean()
   @IsOptional()
-  logSummary: boolean;
+  logSummary?: boolean;
 
   @IsNumber()
   @Min(10)
   @Max(100)
   @IsOptional()
-  socThreshold: number;
+  socThreshold?: number;
 
   @IsEnum(LANGUAGES)
   @IsOptional()
-  language: string;
+  language?: LANGUAGES;
 
   @IsEnum(CARS)
   @IsOptional()
-  car: string;
+  car?: CARS;
 
   @IsNumber()
   @IsPositive()
@@ -65,17 +65,17 @@ export class SettingDto {
   @IsNumber()
   @IsPositive()
   @IsOptional()
-  consumption: number;
+  consumption?: number;
 
   @IsEnum(CONSUMPTION_UNITS)
   @IsOptional()
-  consumptionUnit: string;
+  consumptionUnit?: CONSUMPTION_UNITS;
 
   @IsEnum(RANGE_UNITS)
   @IsOptional()
-  rangeUnit: string;
+  rangeUnit?: RANGE_UNITS;
 
   @IsString()
   @IsOptional()
-  device: string;
+  device?: string;
 }
