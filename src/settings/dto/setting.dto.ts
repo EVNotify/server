@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsEmail,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -24,6 +25,10 @@ export const FIELDS = [
   'consumptionUnit',
   'rangeUnit',
   'device',
+  'email',
+  'telegram',
+  'push',
+  'webhook',
 ];
 
 export class SettingDto {
@@ -37,6 +42,10 @@ export class SettingDto {
     this.consumptionUnit = settings?.consumptionUnit;
     this.rangeUnit = settings?.rangeUnit;
     this.device = settings?.device;
+    this.email = settings?.email;
+    this.telegram = settings?.telegram;
+    this.push = settings?.push;
+    this.webhook = settings?.webhook;
   }
 
   @IsBoolean()
@@ -78,4 +87,20 @@ export class SettingDto {
   @IsString()
   @IsOptional()
   device?: string;
+
+  @IsEmail()
+  @IsOptional()
+  email?: string;
+
+  @IsNumber()
+  @IsOptional()
+  telegram?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  push?: boolean;
+
+  @IsString()
+  @IsOptional()
+  webhook?: string;
 }
