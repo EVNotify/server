@@ -23,10 +23,10 @@ export class Settings {
   socThreshold: number;
 
   @Prop({ enum: LANGUAGES })
-  language: string;
+  language: LANGUAGES;
 
   @Prop({ enum: CARS })
-  car: string;
+  car: CARS;
 
   @Prop()
   capacity: number;
@@ -35,10 +35,10 @@ export class Settings {
   consumption: number;
 
   @Prop({ enum: CONSUMPTION_UNITS })
-  consumptionUnit: string;
+  consumptionUnit: CONSUMPTION_UNITS;
 
   @Prop({ enum: RANGE_UNITS })
-  rangeUnit: string;
+  rangeUnit: RANGE_UNITS;
 
   @Prop()
   device: string;

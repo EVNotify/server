@@ -6,6 +6,7 @@ import { AccountService } from '../account/account.service';
 import { AccountDto } from '../account/dto/account.dto';
 import { CreateAccountDto } from '../account/dto/create-account.dto';
 import { SettingDto } from './dto/setting.dto';
+import { CARS } from './entities/car.entity';
 import { SOC_THRESHOLD_DEFAULT } from './entities/setting.entity';
 import { SettingsController } from './settings.controller';
 import { SettingsModule } from './settings.module';
@@ -76,17 +77,20 @@ describe('SettingsController', () => {
 
   it('should be able to set new setting', async () => {
     settings.capacity = 12;
+    settings.car = CARS.KONA_EV;
 
     const response = await controller.update(testAccount.akey, settings);
 
     expect(response).toBeInstanceOf(SettingDto);
     expect(response).toHaveProperty('capacity', 12);
+    expect(response).toHaveProperty('car', CARS.KONA_EV);
   });
 
   it('should contain new settings', async () => {
     const response = await controller.findOne(testAccount.akey);
 
     expect(response).toHaveProperty('capacity', 12);
+    expect(response).toHaveProperty('car', CARS.KONA_EV);
   });
 
   it('should be able to update existing setting', async () => {
