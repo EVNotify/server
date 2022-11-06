@@ -94,6 +94,10 @@ export class LogsService {
       .findOne({ akey, _id: id })
       .select('history');
 
+    if (!log) {
+      throw new LogNotExistsException();
+    }
+
     return log.history;
   }
 
