@@ -1,5 +1,5 @@
 export enum STATUS {
-  RUNNING,
-  FINISHED,
-  ABORTED,
+  RUNNING = 'RUNNING',
+  FINISHED = 'FINISHED',
+  ABORTED = 'ABORTED',
 }
