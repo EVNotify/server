@@ -126,9 +126,11 @@ export class LogsService {
 
     sync = this.removeUnsetSyncFields(sync);
 
-    if (Object.keys(sync).length <= 1) {
+    if (!Object.keys(sync).length) {
       throw new LogMissingSyncDataException();
     }
+
+    sync.timestamp = syncDto.timestamp || new Date().toISOString();
 
     const log = await this.currentLog(akey, syncDto);
 

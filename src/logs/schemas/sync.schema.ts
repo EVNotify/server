@@ -29,7 +29,7 @@ export class Sync {
     this.outsideTemperature = syncDto?.outsideTemperature;
   }
 
-  timestamp: Date;
+  timestamp: string;
 
   @Prop()
   latitude: number;
