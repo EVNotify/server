@@ -8,17 +8,10 @@ import { MetadataHandler } from './handler/metadata';
 import { LastSyncHandler } from './handler/last-sync';
 import { LastSync, LastSyncSchema } from './schemas/last-sync.schema';
 import { CronHandler } from './handler/cron';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Module({
   controllers: [LogsController],
-  providers: [
-    LogsService,
-    MetadataHandler,
-    LastSyncHandler,
-    CronHandler,
-    EventEmitter2,
-  ],
+  providers: [LogsService, MetadataHandler, LastSyncHandler, CronHandler],
   imports: [
     AccountModule,
     MongooseModule.forFeature([
