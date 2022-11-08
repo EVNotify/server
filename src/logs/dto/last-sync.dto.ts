@@ -5,7 +5,7 @@ import { SyncDto } from './sync.dto';
 export class LastSyncDto extends SyncDto {
   constructor(lastSync?: LastSync) {
     super();
-    this.timestamp = lastSync?.timestamp.toString();
+    this.timestamp = lastSync?.timestamp;
     this.updatedAt = lastSync?.updatedAt;
     this.latitude = lastSync?.latitude;
     this.longitude = lastSync?.longitude;
