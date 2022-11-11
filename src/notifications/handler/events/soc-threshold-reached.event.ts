@@ -1,7 +1,21 @@
+import { Log } from 'src/logs/schemas/log.schema';
+import { Sync } from 'src/logs/schemas/sync.schema';
+import { Settings } from 'src/settings/schemas/settings.schema';
 import { NotificationEventInterface } from '../../../notifications/notification-event.interface';
 
 export class SocThresholdReachedEvent implements NotificationEventInterface {
-  shouldSend(): Promise<boolean> {
-    throw new Error('Method not implemented.');
+  shouldSend(settings: Settings, sync: Sync, log: Log): Promise<boolean> {
+    const threshold = settings.socThreshold;
+    const startSOC = log.startSOC;
+    const currentSOC = sync.socDisplay || sync.socBMS;
+    const hasNoValues = !threshold || !startSOC || !currentSOC;
+    const startedAboveThreshold = startSOC > threshold;
+    const limitNotReached = currentSOC < threshold;
+
+    if (hasNoValues || startedAboveThreshold || limitNotReached) {
+      return Promise.resolve(false);
+    }
+
+    return Promise.resolve(true);
   }
 }

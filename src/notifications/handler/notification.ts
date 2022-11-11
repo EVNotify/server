@@ -5,7 +5,9 @@ import { Log } from '../../logs/schemas/log.schema';
 import { Sync } from '../../logs/schemas/sync.schema';
 import { NOTIFICATION_EVENT } from '../entities/notification-event.entity';
 import { SocThresholdReachedEvent } from './events/soc-threshold-reached.event';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class NotificationHandler {
   constructor(private readonly settingsService: SettingsService) {}
 
@@ -15,7 +17,7 @@ export class NotificationHandler {
     event: NOTIFICATION_EVENT,
   ) {
     const settings = await this.settingsService.findOne(log.akey);
-    // check when last notification was send and if condition fulfilled based on event
+    // check when last notification was send
 
     let handler;
 
@@ -27,8 +29,9 @@ export class NotificationHandler {
         return;
     }
 
-    if (await handler.shouldSend()) {
+    if (await handler.shouldSend(settings, log, sync)) {
       // handle via strategies defined by user settings
+      console.log('SHOULD HANDLE');
     }
   }
 

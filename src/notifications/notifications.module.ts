@@ -1,9 +1,15 @@
 import { Module } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Settings, SettingsSchema } from 'src/settings/schemas/settings.schema';
+import { SettingsService } from 'src/settings/settings.service';
+import { NotificationHandler } from './handler/notification';
 
 @Module({
-  providers: [
-    EventEmitter2,
+  imports: [
+    MongooseModule.forFeature([
+      { name: Settings.name, schema: SettingsSchema },
+    ]),
   ],
+  providers: [NotificationHandler, SettingsService],
 })
 export class NotificationsModule {}
