@@ -4,7 +4,7 @@ import { Settings } from 'src/settings/schemas/settings.schema';
 import { NotificationEventInterface } from '../../../notifications/notification-event.interface';
 
 export class SocThresholdReachedEvent implements NotificationEventInterface {
-  shouldSend(settings: Settings, sync: Sync, log: Log): Promise<boolean> {
+  shouldSend(settings: Settings, log: Log, sync: Sync): Promise<boolean> {
     const threshold = settings.socThreshold;
     const startSOC = log.startSOC;
     const currentSOC = sync.socDisplay || sync.socBMS;
