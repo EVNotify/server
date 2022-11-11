@@ -132,6 +132,32 @@ describe('LogsController', () => {
 
     expect(response).toHaveLength(1);
     expect(response[0]).toHaveProperty('socDisplay', 80);
+    expect(response[0]).toHaveProperty('timestamp');
+  });
+
+  it('should be able to sync data with a timestamp', async () => {
+    const dto = new SyncDto();
+
+    dto.socDisplay = 80;
+    dto.timestamp = '2022-11-06T22:15:58.238Z';
+
+    const response = await controller.syncData(testAccount.akey, dto);
+
+    expect(response).toBeUndefined();
+  });
+
+  it('should be able to retrieve log history with timestamp', async () => {
+    const response = await controller.findOneWithHistory(
+      testAccount.akey,
+      logId,
+    );
+
+    expect(response).toHaveLength(2);
+    expect(response.at(1)).toHaveProperty('socDisplay', 80);
+    expect(response.at(1)).toHaveProperty(
+      'timestamp',
+      '2022-11-06T22:15:58.238Z',
+    );
   });
 
   it('should be able to update log', async () => {

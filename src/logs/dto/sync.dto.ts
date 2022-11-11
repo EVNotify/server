@@ -1,6 +1,6 @@
 import {
   IsBoolean,
-  IsDate,
+  IsDateString,
   IsNumber,
   IsOptional,
   Max,
@@ -8,9 +8,9 @@ import {
 } from 'class-validator';
 
 export class SyncDto {
-  @IsDate()
+  @IsDateString()
   @IsOptional()
-  timestamp: Date = new Date();
+  timestamp: string;
 
   @IsNumber()
   @IsOptional()

@@ -1,4 +1,5 @@
 import { ConfigModule } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import mongoose from 'mongoose';
@@ -14,6 +15,7 @@ describe('LogsService', () => {
         LogsModule,
         ConfigModule.forRoot(),
         MongooseModule.forRoot(process.env.DATABASE_URI),
+        EventEmitterModule.forRoot(),
       ],
     }).compile();
 
