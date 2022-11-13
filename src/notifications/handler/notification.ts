@@ -38,7 +38,7 @@ export class NotificationHandler {
       console.log('SHOULD HANDLE');
     }
 
-    this.telegramStrategy.send();
+    this.telegramStrategy.send(event, settings, log, sync);
   }
 
   @OnEvent(LOG_DATA_SYNCED_EVENT)

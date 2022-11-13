@@ -1,10 +1,10 @@
 import { Log } from 'src/logs/schemas/log.schema';
 import { Sync } from 'src/logs/schemas/sync.schema';
-import { Settings } from 'src/settings/schemas/settings.schema';
+import { SettingDto } from 'src/settings/dto/setting.dto';
 import { NotificationEventInterface } from '../../../notifications/notification-event.interface';
 
 export class SocThresholdReachedEvent implements NotificationEventInterface {
-  shouldSend(settings: Settings, log: Log, sync: Sync): Promise<boolean> {
+  shouldSend(settings: SettingDto, log: Log, sync: Sync): Promise<boolean> {
     const threshold = settings.socThreshold;
     const startSOC = log.startSOC;
     const currentSOC = sync.socDisplay || sync.socBMS;
