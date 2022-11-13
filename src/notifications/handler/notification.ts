@@ -6,7 +6,7 @@ import { Sync } from '../../logs/schemas/sync.schema';
 import { NOTIFICATION_EVENT } from '../entities/notification-event.entity';
 import { SocThresholdReachedEvent } from './events/soc-threshold-reached.event';
 import { Injectable } from '@nestjs/common';
-import { TelegramStrategy } from './strategies/telegram.strategy';
+import { TelegramStrategy } from './strategies/telegram/telegram.strategy';
 
 @Injectable()
 export class NotificationHandler {

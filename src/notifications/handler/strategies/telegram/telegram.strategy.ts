@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { NotificationStrategyInterface } from '../../../notifications/notification-strategy.interface';
+import { NotificationStrategyInterface } from '../../../notification-strategy.interface';
 import { TelegramService } from './telegram.service';
 
 @Injectable()
