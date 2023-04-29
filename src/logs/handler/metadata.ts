@@ -13,8 +13,12 @@ import { Sync } from '../schemas/sync.schema';
 
 @Injectable()
 export class MetadataHandler {
-  constructor(@InjectModel(Log.name) private logModel: Model<Log>, private emitter: EventEmitter2) {
-    emitter.on(LOG_DATA_SYNCED_EVENT, (payload) => this.handleSyncEvent(payload));
+  constructor(
+    @InjectModel(Log.name) private logModel: Model<Log>,
+    private emitter: EventEmitter2,
+  ) {
+    emitter.on(LOG_DATA_SYNCED_EVENT, (payload: { log: Log; sync: Sync }) => this.handleSyncEvent(payload));
+    emitter.on(LOG_FINISHED_EVENT, (log: Log) => this.handleFinishedEvent(log));
   }
 
   private setOneTimeMetadata(log: Log, sync: Sync) {
@@ -143,7 +147,6 @@ export class MetadataHandler {
     this.saveMetadata(payload.log);
   }
 
-  @OnEvent(LOG_FINISHED_EVENT)
   async handleFinishedEvent(log: Log) {
     this.setEndMetadata(log);
     this.saveMetadata(log);

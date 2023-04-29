@@ -241,6 +241,7 @@ describe('LogsController', () => {
 
     expect(response).toBeInstanceOf(LogDto);
     expect(response).toHaveProperty('status', STATUS.FINISHED);
+    expect(response).toHaveProperty('endSOC', 81);
   });
 
   it('should contain metadata', async () => {
