@@ -66,7 +66,7 @@ export class LogsService {
     return log;
   }
 
-  async lastSync(akey: string): Promise<LastSync> {
+  async lastSync(akey: string): Promise<LastSyncDto> {
     const lastSync = await this.lastSyncModel.findOne({ akey });
 
     return new LastSyncDto(lastSync);
