@@ -12,12 +12,14 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { SyncDto } from './dto/sync.dto';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { UpdateLogDto } from './dto/update-log.dto';
+import { STATUS } from './entities/status.entity';
 
 describe('LogsController', () => {
   let accountService: AccountService;
   let controller: LogsController;
   let testAccount: AccountDto;
   let logId: string;
+  let chargeLogId: string;
 
   async function createAccount() {
     const dto = new CreateAccountDto();
@@ -105,15 +107,12 @@ describe('LogsController', () => {
     expect(response).toBeUndefined();
   });
 
-  jest.setTimeout(30000);
-  it('shoud be able to retrieve log in list', async () => {
-    await new Promise((r) => setTimeout(r, 5000));
+  it('should be able to retrieve log in list', async () => {
     const response = await controller.findAll(testAccount.akey);
 
     expect(response).toHaveLength(1);
     expect(response[0]).toBeInstanceOf(LogDto);
-    // FIXME event emitter handling not working in tests?
-    // expect(response[0]).toHaveProperty('startSOC', 80);
+    expect(response[0]).toHaveProperty('startSOC', 80);
     logId = response[0].id;
   });
 
@@ -226,15 +225,43 @@ describe('LogsController', () => {
     const dto = new SyncDto();
 
     dto.charging = true;
+    dto.socDisplay = 75;
+    dto.dcBatteryPower = 10;
 
     await controller.syncData(testAccount.akey, dto);
 
     const response = await controller.findAll(testAccount.akey);
 
     expect(response).toHaveLength(2);
+    chargeLogId = response[1].id;
   });
 
-  test.todo('should contain metadata');
+  it('should mark previous log as finished', async () => {
+    const response = await controller.findOne(testAccount.akey, logId);
 
-  test.todo('should update metadata when adding new data');
+    expect(response).toBeInstanceOf(LogDto);
+    expect(response).toHaveProperty('status', STATUS.FINISHED);
+  });
+
+  it('should contain metadata', async () => {
+    const response = await controller.findOne(testAccount.akey, chargeLogId);
+
+    expect(response).toBeInstanceOf(LogDto);
+    expect(response).toHaveProperty('isCharge', true);
+    expect(response).toHaveProperty('startSOC', 75);
+    expect(response).toHaveProperty('averageKW', 10);
+  });
+
+  it('should update metadata when adding new data', async () => {
+    const dto = new SyncDto();
+
+    dto.dcBatteryPower = 2;
+
+    await controller.syncData(testAccount.akey, dto);
+
+    const response = await controller.findOne(testAccount.akey, chargeLogId);
+
+    expect(response).toBeInstanceOf(LogDto);
+    expect(response).toHaveProperty('averageKW', 6);
+  });
 });
