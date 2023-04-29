@@ -73,7 +73,7 @@ export class LogsService {
   }
 
   async findAll(akey: string): Promise<LogDto[]> {
-    const logs = await this.logModel.find({ akey }).select('-history');
+    const logs = await this.logModel.find({ akey }).select('-history').sort('startDate');
 
     return Promise.resolve(logs.map((log) => new LogDto(log)));
   }
