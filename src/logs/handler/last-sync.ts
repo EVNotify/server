@@ -5,7 +5,9 @@ import { LOG_DATA_SYNCED_EVENT } from '../entities/log.entity';
 import { LastSync } from '../schemas/last-sync.schema';
 import { Log } from '../schemas/log.schema';
 import { Sync } from '../schemas/sync.schema';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class LastSyncHandler {
   constructor(
     @InjectModel(LastSync.name) private lastSyncModel: Model<LastSync>,
