@@ -12,6 +12,26 @@
 $ npm install
 ```
 
+## Prerequisites
+
+The backend requires Node.JS.
+
+It is recommended to use the LTS version (18.16.0).
+
+Other versions might work as well.
+
+As a database system, MongoDB is required (v6 recommended).
+
+## Configuration
+
+In order to be able to run the server properly,
+a few things needs to be set up first.
+
+Copy the `.env.example` file to `.env`.
+
+Adjust the variable values based to your needs.
+
+
 ## Running the server
 
 ```bash
