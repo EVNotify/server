@@ -1,4 +1,5 @@
-import { OnEvent } from '@nestjs/event-emitter';
+import { Injectable } from '@nestjs/common';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { LogDto } from '../dto/log.dto';
@@ -10,8 +11,11 @@ import { STATUS } from '../entities/status.entity';
 import { Log } from '../schemas/log.schema';
 import { Sync } from '../schemas/sync.schema';
 
+@Injectable()
 export class MetadataHandler {
-  constructor(@InjectModel(Log.name) private logModel: Model<Log>) {}
+  constructor(@InjectModel(Log.name) private logModel: Model<Log>, private emitter: EventEmitter2) {
+    emitter.on(LOG_DATA_SYNCED_EVENT, (payload) => this.handleSyncEvent(payload));
+  }
 
   private setOneTimeMetadata(log: Log, sync: Sync) {
     if (log.status != STATUS.RUNNING) {
@@ -133,7 +137,6 @@ export class MetadataHandler {
     );
   }
 
-  @OnEvent(LOG_DATA_SYNCED_EVENT)
   async handleSyncEvent(payload: { log: Log; sync: Sync }) {
     this.setOneTimeMetadata(payload.log, payload.sync);
     this.setSummarizedMetadata(payload.log, payload.sync);
