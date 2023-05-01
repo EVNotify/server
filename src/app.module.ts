@@ -6,6 +6,7 @@ import { AccountModule } from './account/account.module';
 import { SettingsModule } from './settings/settings.module';
 import { LogsModule } from './logs/logs.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     AccountModule,
     SettingsModule,
     LogsModule,
+    NotificationsModule,
   ],
   controllers: [],
   providers: [],
