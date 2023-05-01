@@ -110,4 +110,6 @@ describe('SettingsController', () => {
 
     expect(response).toHaveProperty('socThreshold', 80);
   });
+
+  test.todo('should not be able to update setting with invalid value');
 });

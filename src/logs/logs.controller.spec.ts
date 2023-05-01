@@ -288,4 +288,6 @@ describe('LogsController', () => {
     expect(response).toBeInstanceOf(LogDto);
     expect(response).toHaveProperty('averageKW', 6);
   });
+
+  test.todo('should not be able to sync invalid data');
 });
