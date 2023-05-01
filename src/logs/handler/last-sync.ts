@@ -1,4 +1,4 @@
-import { OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { LOG_DATA_SYNCED_EVENT } from '../entities/log.entity';
@@ -11,7 +11,10 @@ import { Injectable } from '@nestjs/common';
 export class LastSyncHandler {
   constructor(
     @InjectModel(LastSync.name) private lastSyncModel: Model<LastSync>,
-  ) {}
+    emitter: EventEmitter2,
+  ) {
+    emitter.on(LOG_DATA_SYNCED_EVENT, (payload: { log: Log; sync: Sync }) => this.handleSyncEvent(payload));
+  }
 
   private async getOrCreateLastSync(akey: string): Promise<LastSync> {
     const log = await this.lastSyncModel.findOne({
@@ -42,7 +45,6 @@ export class LastSyncHandler {
     );
   }
 
-  @OnEvent(LOG_DATA_SYNCED_EVENT)
   async handleSyncEvent(payload: { log: Log; sync: Sync }) {
     const lastSync = await this.getOrCreateLastSync(payload.log.akey);
 
