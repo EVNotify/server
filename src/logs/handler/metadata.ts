@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { LogDto } from '../dto/log.dto';
@@ -15,7 +15,7 @@ import { Sync } from '../schemas/sync.schema';
 export class MetadataHandler {
   constructor(
     @InjectModel(Log.name) private logModel: Model<Log>,
-    private emitter: EventEmitter2,
+    emitter: EventEmitter2,
   ) {
     emitter.on(LOG_DATA_SYNCED_EVENT, (payload: { log: Log; sync: Sync }) => this.handleSyncEvent(payload));
     emitter.on(LOG_FINISHED_EVENT, (log: Log) => this.handleFinishedEvent(log));
