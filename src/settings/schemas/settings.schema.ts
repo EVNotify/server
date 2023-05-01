@@ -42,6 +42,18 @@ export class Settings {
 
   @Prop()
   device: string;
+
+  @Prop()
+  email?: string;
+
+  @Prop()
+  telegram?: number;
+
+  @Prop()
+  push?: boolean;
+
+  @Prop()
+  webhook?: string;
 }
 
 export const SettingsSchema = SchemaFactory.createForClass(Settings);
