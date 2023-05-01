@@ -13,6 +13,7 @@ import { SyncDto } from './dto/sync.dto';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { UpdateLogDto } from './dto/update-log.dto';
 import { STATUS } from './entities/status.entity';
+import { LastSyncDto } from './dto/last-sync.dto';
 
 describe('LogsController', () => {
   let accountService: AccountService;
@@ -20,6 +21,7 @@ describe('LogsController', () => {
   let testAccount: AccountDto;
   let logId: string;
   let chargeLogId: string;
+  let syncTimestamp: Date;
 
   async function createAccount() {
     const dto = new CreateAccountDto();
@@ -113,7 +115,9 @@ describe('LogsController', () => {
     expect(response).toHaveLength(1);
     expect(response[0]).toBeInstanceOf(LogDto);
     expect(response[0]).toHaveProperty('startSOC', 80);
+    expect(response[0]).toHaveProperty('updatedAt');
     logId = response[0].id;
+    syncTimestamp = response[0].updatedAt;
   });
 
   it('should be able to retrieve it', async () => {
@@ -132,6 +136,15 @@ describe('LogsController', () => {
     expect(response).toHaveLength(1);
     expect(response[0]).toHaveProperty('socDisplay', 80);
     expect(response[0]).toHaveProperty('timestamp');
+  });
+
+  it('should be able to retrieve last sync data', async () => {
+    const response = await controller.lastSync(testAccount.akey);
+
+    expect(response).toBeInstanceOf(LastSyncDto);
+    expect(response).toHaveProperty('updatedAt');
+    expect(response).toHaveProperty('socDisplay', 80);
+    expect(new Date(response.updatedAt).getTime()).toBeGreaterThan(syncTimestamp.getTime());
   });
 
   it('should be able to sync data with a timestamp', async () => {
@@ -208,6 +221,7 @@ describe('LogsController', () => {
     dto.socDisplay = 81;
 
     await controller.syncData(testAccount.akey, dto);
+    syncTimestamp = new Date();
   });
 
   it('should contain two history records', async () => {
@@ -219,6 +233,15 @@ describe('LogsController', () => {
     expect(response).toHaveLength(2);
     expect(response.at(0)).toHaveProperty('socDisplay', 80);
     expect(response.at(1)).toHaveProperty('socDisplay', 81);
+  });
+
+  it('should be able to retrieve updated last sync data', async () => {
+    const response = await controller.lastSync(testAccount.akey);
+
+    expect(response).toBeInstanceOf(LastSyncDto);
+    expect(response).toHaveProperty('updatedAt');
+    expect(response).toHaveProperty('socDisplay', 81);
+    expect(new Date(response.updatedAt).getTime()).toBeGreaterThan(syncTimestamp.getTime());
   });
 
   it('should create a new log once charging started', async () => {
