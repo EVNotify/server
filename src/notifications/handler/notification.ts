@@ -7,11 +7,15 @@ import { NOTIFICATION_EVENT } from '../entities/notification-event.entity';
 import { Injectable } from '@nestjs/common';
 import { SocThresholdReachedEvent } from '../events/soc-threshold-reached.event';
 import { NotificationEventInterface } from '../events/notification-event.interface';
+import { TelegramStrategy } from '../strategies/telegram/telegram.strategy';
+import { EmailStrategy } from '../strategies/email/email.strategy';
 
 @Injectable()
 export class NotificationHandler {
   constructor(
     private readonly settingsService: SettingsService,
+    private readonly telegramStrategy: TelegramStrategy,
+    private readonly emailStrategy: EmailStrategy,
   ) {}
 
   private async sendNotificationIfApplicable(
@@ -33,8 +37,9 @@ export class NotificationHandler {
     }
 
     if (await handler.shouldSend(settings, log, sync, event)) {
-      // TODO handle via strategies defined by user settings
-      console.log('SHOULD HANDLE');
+      // TODO handle via strategies defined by user settings and validate them
+      this.telegramStrategy.send(event, settings, log, sync);
+      this.emailStrategy.send(event, settings, log, sync);
     }
   }
 

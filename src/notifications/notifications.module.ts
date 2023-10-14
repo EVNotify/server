@@ -5,6 +5,8 @@ import { SettingsService } from 'src/settings/settings.service';
 import { NotificationHandler } from './handler/notification';
 import { TelegramStrategy } from './strategies/telegram/telegram.strategy';
 import { TelegramService } from './strategies/telegram/telegram.service';
+import { EmailService } from './strategies/email/email.service';
+import { EmailStrategy } from './strategies/email/email.strategy';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { TelegramService } from './strategies/telegram/telegram.service';
     SettingsService,
     TelegramStrategy,
     TelegramService,
+    EmailService,
+    EmailStrategy,
   ],
 })
 export class NotificationsModule {}
