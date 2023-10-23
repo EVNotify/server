@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { readFileSync } from 'fs';
+import stringInject from 'stringinject';
 
 @Injectable()
 export class Translator {
@@ -8,8 +9,11 @@ export class Translator {
   public localizations = {};
   private path = process.cwd() + '/src/i18n/';
 
-  // TODO: data placeholders
-  public translate(key: string, locale: string): string {
+  public translate(
+    key: string,
+    locale: string,
+    variables: object = null,
+  ): string {
     if (!this.allowedLocales.includes(locale)) {
       locale = this.fallbackLocale;
     }
@@ -20,9 +24,13 @@ export class Translator {
       );
     }
 
-    const text =
+    let text =
       this.localizations[locale][key] ??
       this.localizations[this.fallbackLocale][key];
+
+    if (variables) {
+      text = stringInject(text, variables);
+    }
 
     return text ?? key;
   }
