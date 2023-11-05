@@ -28,7 +28,7 @@ export class Translator {
       this.localizations[locale][key] ??
       this.localizations[this.fallbackLocale][key];
 
-    if (variables) {
+    if (text && variables) {
       text = stringInject(text, variables);
     }
 
