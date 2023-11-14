@@ -51,11 +51,16 @@ export class TelegramService {
 
   private async retrieveUser(
     telegramId: number,
+    akey: string = null,
   ): Promise<TelegramUserDto | null> {
+    const query = akey ? {
+      telegram: telegramId,
+      akey,
+    } : {
+      telegram: telegramId,
+    };
     const setting = await this.settingsModel
-      .findOne({
-        telegram: telegramId,
-      })
+      .findOne(query)
       .select('akey');
 
     if (!setting) {
@@ -86,12 +91,11 @@ export class TelegramService {
     );
   }
 
-  // TODO: support to fetch another akey belonging to the telegram id
   private async sendSoCMessage(
     telegramId: number,
     akey: string = null,
   ): Promise<void> {
-    const user = await this.retrieveUser(telegramId);
+    const user = await this.retrieveUser(telegramId, akey);
 
     if (!user) {
       this.sendErrorMessage(telegramId);
@@ -135,9 +139,14 @@ export class TelegramService {
     const lastSync = await this.logsService.lastSync(user.akey);
 
     this.bot.sendLocation(telegramId, lastSync.latitude, lastSync.longitude);
+    this.bot.sendMessage(
+      telegramId,
+      this.translator.translate('telegram.message.location_info', user.language, {
+        updatedAt: lastSync.updatedAt,
+      }),
+    );
   }
 
-  // TODO
   private async sendExtendedMessage(telegramId: number): Promise<void> {
     const user = await this.retrieveUser(telegramId);
 
@@ -146,9 +155,21 @@ export class TelegramService {
       return;
     }
 
+    const lastSync = await this.logsService.lastSync(user.akey);
+
     this.bot.sendMessage(
       telegramId,
-      this.translator.translate('telegram.message.extended', 'en'),
+      this.translator.translate('telegram.message.extended_info', user.language, {
+        soh: lastSync.soh,
+        charging: this.translator.translate(lastSync.charging ? 'yes' : 'no', user.language),
+        auxBatteryVoltage: lastSync.auxBatteryVoltage,
+        dcBatteryVoltage: lastSync.dcBatteryVoltage,
+        dcBatteryCurrent: lastSync.dcBatteryCurrent,
+        dcBatteryPower: lastSync.dcBatteryPower,
+        batteryMinTemperature: lastSync.batteryMinTemperature,
+        batteryMaxTemperature: lastSync.batteryMaxTemperature,
+        batteryInletTemperature: lastSync.batteryInletTemperature,
+      }),
     );
   }
 
