@@ -53,15 +53,15 @@ export class TelegramService {
     telegramId: number,
     akey: string = null,
   ): Promise<TelegramUserDto | null> {
-    const query = akey ? {
-      telegram: telegramId,
-      akey,
-    } : {
-      telegram: telegramId,
-    };
-    const setting = await this.settingsModel
-      .findOne(query)
-      .select('akey');
+    const query = akey
+      ? {
+          telegram: telegramId,
+          akey,
+        }
+      : {
+          telegram: telegramId,
+        };
+    const setting = await this.settingsModel.findOne(query).select('akey');
 
     if (!setting) {
       return null;
@@ -141,9 +141,13 @@ export class TelegramService {
     this.bot.sendLocation(telegramId, lastSync.latitude, lastSync.longitude);
     this.bot.sendMessage(
       telegramId,
-      this.translator.translate('telegram.message.location_info', user.language, {
-        updatedAt: lastSync.updatedAt,
-      }),
+      this.translator.translate(
+        'telegram.message.location_info',
+        user.language,
+        {
+          updatedAt: lastSync.updatedAt,
+        },
+      ),
     );
   }
 
@@ -159,17 +163,24 @@ export class TelegramService {
 
     this.bot.sendMessage(
       telegramId,
-      this.translator.translate('telegram.message.extended_info', user.language, {
-        soh: lastSync.soh,
-        charging: this.translator.translate(lastSync.charging ? 'yes' : 'no', user.language),
-        auxBatteryVoltage: lastSync.auxBatteryVoltage,
-        dcBatteryVoltage: lastSync.dcBatteryVoltage,
-        dcBatteryCurrent: lastSync.dcBatteryCurrent,
-        dcBatteryPower: lastSync.dcBatteryPower,
-        batteryMinTemperature: lastSync.batteryMinTemperature,
-        batteryMaxTemperature: lastSync.batteryMaxTemperature,
-        batteryInletTemperature: lastSync.batteryInletTemperature,
-      }),
+      this.translator.translate(
+        'telegram.message.extended_info',
+        user.language,
+        {
+          soh: lastSync.soh,
+          charging: this.translator.translate(
+            lastSync.charging ? 'yes' : 'no',
+            user.language,
+          ),
+          auxBatteryVoltage: lastSync.auxBatteryVoltage,
+          dcBatteryVoltage: lastSync.dcBatteryVoltage,
+          dcBatteryCurrent: lastSync.dcBatteryCurrent,
+          dcBatteryPower: lastSync.dcBatteryPower,
+          batteryMinTemperature: lastSync.batteryMinTemperature,
+          batteryMaxTemperature: lastSync.batteryMaxTemperature,
+          batteryInletTemperature: lastSync.batteryInletTemperature,
+        },
+      ),
     );
   }
 
