@@ -123,7 +123,7 @@ export class TelegramService {
       telegramId,
       this.translator.translate(
         'telegram.message.help',
-        language ? user?.language ?? LANGUAGES.en : LANGUAGES.en,
+        language ?? user?.language ?? LANGUAGES.en,
       ),
     );
   }
