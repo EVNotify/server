@@ -20,11 +20,11 @@ export class TelegramService {
     this.translator = new Translator();
     this.bot = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
 
-    this.bot.on(/\/start\W*(\w+)?/i, async (msg, match) => {
-      this.sendStartMessage(msg.chat.id, match[1]);
-    });
+    this.bot.onText(/\/start\W*(\w+)?/i, (msg, match) =>
+      this.sendStartMessage(msg.chat.id, match[1]),
+    );
 
-    this.bot.on(/\/help\W*(\w+)?/i, async (msg, match) => {
+    this.bot.onText(/\/help\W*(\w+)?/i, async (msg, match) => {
       this.sendHelpMessage(msg.chat.id, match[1]);
     });
 
