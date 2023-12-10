@@ -138,6 +138,11 @@ export class TelegramService {
 
     const lastSync = await this.logsService.lastSync(user.akey);
 
+    if (!lastSync.latitude || !lastSync.longitude) {
+      this.sendErrorMessage(telegramId);
+      return;
+    }
+
     this.bot.sendLocation(telegramId, lastSync.latitude, lastSync.longitude);
     this.bot.sendMessage(
       telegramId,
