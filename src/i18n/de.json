@@ -1,3 +1,4 @@
 {
-  "hello": "de"
+  "telegram.message.start": "Hallo! Ich bin der EVNotify Bot und kann Dich über Deinen Ladezustand, Ergeignisse und viel mehr informieren. Gib einfach /subscribe ein, um loszulegen! Falls Du Hilfe brauchst, kannst Du jederzeit /help eingeben. Möchtest du keine weiteren Nachrichten erhalten, kannst du auch jederzeit /unsubscribe ausführen.",
+  "telegram.message.help": "Ich kann Dich z.B. über den Ladezustand Deines Elektroautos benachrichtigen. Hierfür einfach /subscribe eingeben. Das ist notwendig, damit ich Dein Account auch zuordnen kann. Mit /soc kannst Du z.B. jederzeit Deinen Ladezustand abfragen. Möchtest Du nicht weiter von mir benachrichtigt werden, kannst Du einfach /unsubscribe eingeben."
 }

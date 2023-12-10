@@ -1,3 +1,4 @@
 {
-  "hello": "en"
+  "telegram.message.start": "Hello! I am the EVNotify Bot and can inform you about your charging status, events and much more. Just type /subscribe to get started! If you need help, you can type /help at any time. If you don't want to receive any further messages, you can run /unsubscribe at any time.",
+  "telegram.message.help": "For example, I can notify you about the charging status of your electric car. To do this, simply enter /subscribe. This is necessary so that I can assign your account. For example, you can use /soc to check your charge status at any time. If you no longer want to be notified by me, you can simply enter /unsubscribe."
 }
