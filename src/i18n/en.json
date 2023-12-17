@@ -2,5 +2,9 @@
   "telegram.message.start": "Hello! I am the EVNotify Bot and can inform you about your charging status, events and much more. Just type /subscribe to get started! If you need help, you can type /help at any time. If you don't want to receive any further messages, you can run /unsubscribe at any time.",
   "telegram.message.help": "For example, I can notify you about the charging status of your electric car. To do this, simply enter /subscribe. This is necessary so that I can assign your account. For example, you can use /soc to check your charge status at any time. If you no longer want to be notified by me, you can simply enter /unsubscribe.",
   "telegram.message.error": "Oops! Normally I should do something now, but somehow it's not working right now. It's probably an error. Try again later or report the error on GitHub.com/EVNotify/server",
+  "telegram.message.subscribe": "In order to notify you, your account must be linked here. It's very easy. Simply enter your token. You can find this in EVNotify in your account settings. If you need help, use / help.",
+  "telegram.message.already_subscribed": "You have already linked your account to Telegram. To use it, ask me about the charging status using /soc, for example. If you want to unsubscribe, enter /unsubscribe.",
+  "telegram.message.subscribed": "Perfect! From now on I will notify you when the desired charge level has been reached. You can also ask for your data here at any time, try /soc or /location.",
+  "telegram.message.unsubscribed": "Alright. The link to your EVNotify account has been removed. You will not receive any notifications here and can not interact with your data. You can /subscribe at any time again.",
   "telegram.message.soc_info": "The last reported state of charge is {soc}%. With this you will be able to travel approximately {range}{unit} far. The data was updated at {updatedAt}."
 }
