@@ -7,6 +7,7 @@ import { Settings } from 'src/settings/schemas/settings.schema';
 import { TelegramUserDto } from '../../dto/telegram-user.dto';
 import { LANGUAGES } from '../../../settings/entities/language.entity';
 import { LogsService } from '../../../logs/logs.service';
+import { Account } from 'src/account/schemas/account.schema';
 
 @Injectable()
 export class TelegramService {
@@ -16,6 +17,7 @@ export class TelegramService {
   constructor(
     private readonly logsService: LogsService,
     @InjectModel(Settings.name) private settingsModel: Model<Settings>,
+    @InjectModel(Account.name) private accountModel: Model<Account>,
   ) {
     this.translator = new Translator();
     this.bot = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
@@ -28,6 +30,13 @@ export class TelegramService {
       this.sendHelpMessage(msg.chat.id, match[1]);
     });
 
+    this.bot.onText(/\/subscribe\W*(\w+)?/i, (msg, match) =>
+      this.sendSubscriptionMessage(msg.chat.id, match[1]),
+    );
+
+    this.bot.onText(/unsubscribe/i, (msg) =>
+      this.sendUnsubscriptionMessage(msg.chat.id),
+    );
     this.bot.onText(/\/soc\W*(\w+)?/i, (msg, match) =>
       this.sendSoCMessage(msg.chat.id, match[1]),
     );
@@ -88,6 +97,95 @@ export class TelegramService {
     this.bot.sendMessage(
       telegramId,
       this.translator.translate('telegram.message.error', LANGUAGES.en),
+    );
+  }
+
+  private async linkViaToken(telegramId: number, token: string): Promise<void> {
+    const user = await this.accountModel.findOne({
+      token,
+    });
+
+    if (!user) {
+      this.sendErrorMessage(telegramId);
+      return;
+    }
+
+    await this.settingsModel.updateOne(
+      {
+        akey: user.akey,
+      },
+      {
+        $set: {
+          telegram: telegramId,
+        },
+      },
+    );
+
+    this.bot.sendMessage(
+      telegramId,
+      this.translator.translate('telegram.message.subscribed'),
+    );
+  }
+
+  private async sendSubscriptionMessage(
+    telegramId: number,
+    token?: string,
+  ): Promise<void> {
+    const user = await this.retrieveUser(telegramId);
+
+    if (user) {
+      this.bot.sendMessage(
+        telegramId,
+        this.translator.translate(
+          'telegram.message.already_subscribed',
+          user.language,
+        ),
+      );
+      return;
+    }
+
+    if (token) {
+      await this.linkViaToken(telegramId, token);
+      return;
+    }
+
+    const message = await this.bot.sendMessage(
+      telegramId,
+      this.translator.translate('telegram.message.subscribe'),
+      {
+        reply_markup: JSON.stringify({
+          force_reply: true,
+        }),
+      },
+    );
+
+    await this.bot.onReplyToMessage(telegramId, message.message_id, (reply) => {
+      this.linkViaToken(telegramId, reply.text);
+    });
+  }
+
+  private async sendUnsubscriptionMessage(telegramId: number): Promise<void> {
+    const user = await this.retrieveUser(telegramId);
+
+    if (!user) {
+      this.sendErrorMessage(telegramId);
+      return;
+    }
+
+    await this.settingsModel.updateOne(
+      {
+        telegram: telegramId,
+      },
+      {
+        $set: {
+          telegram: null,
+        },
+      },
+    );
+
+    this.bot.sendMessage(
+      telegramId,
+      this.translator.translate('telegram.message.unsubscribed', user.language),
     );
   }
 

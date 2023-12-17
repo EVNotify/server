@@ -10,9 +10,11 @@ import { EmailStrategy } from './strategies/email/email.strategy';
 import { LogsService } from '../logs/logs.service';
 import { Log, LogSchema } from '../logs/schemas/log.schema';
 import { LastSync, LastSyncSchema } from '../logs/schemas/last-sync.schema';
+import { Account, AccountSchema } from 'src/account/schemas/account.schema';
 
 @Module({
   imports: [
+    MongooseModule.forFeature([{ name: Account.name, schema: AccountSchema }]),
     MongooseModule.forFeature([
       { name: Settings.name, schema: SettingsSchema },
     ]),

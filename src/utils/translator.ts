@@ -11,7 +11,7 @@ export class Translator {
 
   public translate(
     key: string,
-    locale: string,
+    locale?: string,
     variables: object = null,
   ): string {
     if (!this.allowedLocales.includes(locale)) {
