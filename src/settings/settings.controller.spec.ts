@@ -73,6 +73,11 @@ describe('SettingsController', () => {
     );
 
     expect(response).toHaveProperty('socThreshold', SOC_THRESHOLD_DEFAULT);
+    Object.keys(response).forEach((key) => {
+      if (key !== 'socThreshold') {
+        expect(response[key]).toBeUndefined;
+      }
+    });
   });
 
   it('should be able to set new setting', async () => {
