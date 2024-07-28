@@ -51,7 +51,9 @@ describe('LogsController', () => {
   });
 
   afterAll(async () => {
-    await mongoose.disconnect();
+    const timer = setTimeout(async () => await mongoose.disconnect(), 1000);
+
+    timer.unref();
   });
 
   it('should be defined', () => {
