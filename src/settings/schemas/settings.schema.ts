@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { CARS } from '../entities/car.entity';
 import { CONSUMPTION_UNITS } from '../entities/consumption.entity';
 import { LANGUAGES } from '../entities/language.entity';
@@ -10,6 +10,8 @@ export type SettingsDocument = Settings & Document;
 
 @Schema()
 export class Settings {
+  _id: Types.ObjectId;
+
   @Prop({
     required: true,
     unique: true,

@@ -13,7 +13,9 @@ export class LastSyncHandler {
     @InjectModel(LastSync.name) private lastSyncModel: Model<LastSync>,
     emitter: EventEmitter2,
   ) {
-    emitter.on(LOG_DATA_SYNCED_EVENT, (payload: { log: Log; sync: Sync }) => this.handleSyncEvent(payload));
+    emitter.on(LOG_DATA_SYNCED_EVENT, (payload: { log: Log; sync: Sync }) =>
+      this.handleSyncEvent(payload),
+    );
   }
 
   private async getOrCreateLastSync(akey: string): Promise<LastSync> {

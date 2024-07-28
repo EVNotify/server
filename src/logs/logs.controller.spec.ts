@@ -51,7 +51,9 @@ describe('LogsController', () => {
   });
 
   afterAll(async () => {
-    await mongoose.disconnect();
+    const timer = setTimeout(async () => await mongoose.disconnect(), 1000);
+
+    timer.unref();
   });
 
   it('should be defined', () => {
@@ -144,7 +146,9 @@ describe('LogsController', () => {
     expect(response).toBeInstanceOf(LastSyncDto);
     expect(response).toHaveProperty('updatedAt');
     expect(response).toHaveProperty('socDisplay', 80);
-    expect(new Date(response.updatedAt).getTime()).toBeGreaterThan(syncTimestamp.getTime());
+    expect(new Date(response.updatedAt).getTime()).toBeGreaterThan(
+      syncTimestamp.getTime(),
+    );
   });
 
   it('should be able to sync data with a timestamp', async () => {
@@ -241,7 +245,9 @@ describe('LogsController', () => {
     expect(response).toBeInstanceOf(LastSyncDto);
     expect(response).toHaveProperty('updatedAt');
     expect(response).toHaveProperty('socDisplay', 81);
-    expect(new Date(response.updatedAt).getTime()).toBeGreaterThan(syncTimestamp.getTime());
+    expect(new Date(response.updatedAt).getTime()).toBeGreaterThan(
+      syncTimestamp.getTime(),
+    );
   });
 
   it('should create a new log once charging started', async () => {
