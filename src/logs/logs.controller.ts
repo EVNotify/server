@@ -11,6 +11,7 @@ import {
   NotFoundException,
   InternalServerErrorException,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { LogsService } from './logs.service';
 import { UpdateLogDto } from './dto/update-log.dto';
@@ -31,8 +32,8 @@ export class LogsController {
   constructor(private readonly logsService: LogsService) {}
 
   @Get(':akey')
-  async findAll(@Param('akey') akey: string) {
-    return this.logsService.findAll(akey);
+  async findAll(@Param('akey') akey: string, @Query('isCharge') isCharge?: boolean) {
+    return this.logsService.findAll(akey, isCharge);
   }
 
   @Get(':akey/last-sync')

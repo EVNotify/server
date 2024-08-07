@@ -72,13 +72,17 @@ export class LogsService {
     return new LastSyncDto(lastSync);
   }
 
-  async findAll(akey: string): Promise<LogDto[]> {
-    const logs = await this.logModel
+  async findAll(akey: string, isCharge?: boolean): Promise<LogDto[]> {
+    const logs = this.logModel
       .find({ akey })
       .select('-history')
       .sort('startDate');
 
-    return Promise.resolve(logs.map((log) => new LogDto(log)));
+    if (isCharge != null) {
+      logs.where({ isCharge });
+    }
+
+    return Promise.resolve((await logs).map((log) => new LogDto(log)));
   }
 
   async findOne(akey: string, id: string): Promise<LogDto> {
