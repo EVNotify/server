@@ -122,6 +122,12 @@ describe('LogsController', () => {
     syncTimestamp = response[0].updatedAt;
   });
 
+  it('should be able to filter out log in list', async () => {
+    const response = await controller.findAll(testAccount.akey, false);
+
+    expect(response).toHaveLength(0);
+  });
+
   it('should be able to retrieve it', async () => {
     const response = await controller.findOne(testAccount.akey, logId);
 
