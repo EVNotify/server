@@ -11,6 +11,7 @@ import {
   UseGuards,
   UnauthorizedException,
   BadRequestException,
+  HttpCode,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Exception } from '../utils/exception';
@@ -78,6 +79,7 @@ export class AccountController {
 
   @Post(':akey/login')
   @Guest()
+  @HttpCode(200)
   async login(@Param('akey') akey: string, @Body() loginDto: LoginPasswordDto) {
     try {
       const account = await this.accountService.loginWithPassword(
