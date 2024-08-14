@@ -37,7 +37,7 @@ export class MetadataHandler {
     }
 
     const mapping = {
-      isCharge: 'charging',
+      type: 'charging',
       startODO: 'odo',
       startCEC: 'cec',
       startCED: 'ced',
