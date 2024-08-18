@@ -10,6 +10,7 @@ import {
 import { STATUS } from '../entities/status.entity';
 import { Log } from '../schemas/log.schema';
 import { Sync } from '../schemas/sync.schema';
+import { TYPE } from '../entities/type.entity';
 
 @Injectable()
 export class MetadataHandler {
@@ -46,9 +47,16 @@ export class MetadataHandler {
     for (const logField in mapping) {
       if (Object.prototype.hasOwnProperty.call(mapping, logField)) {
         const syncField = mapping[logField];
+        const syncValue = sync[syncField];
 
-        if (log[logField] == null && sync[syncField] != null) {
-          log[logField] = sync[syncField];
+        if (syncField === 'charging' && log[logField] === TYPE.UNKNOWN && syncValue != null) {
+          log[logField] = syncValue ? TYPE.CHARGE : TYPE.DRIVE;
+        } else if (log[logField] == null && syncValue != null) {
+          log[logField] = syncValue;
+        }
+
+        if ((syncField === 'charging' ? log[logField] == TYPE.UNKNOWN : log[logField] == null) && syncValue != null) {
+          log[logField] = syncValue;
         }
       }
     }
