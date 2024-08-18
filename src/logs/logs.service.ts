@@ -17,6 +17,7 @@ import { LogNotExistsException } from './exceptions/log-not-exists.exception';
 import { LastSync } from './schemas/last-sync.schema';
 import { Log } from './schemas/log.schema';
 import { Sync } from './schemas/sync.schema';
+import { TYPE } from './entities/type.entity';
 
 @Injectable()
 export class LogsService {
@@ -54,7 +55,10 @@ export class LogsService {
     if (!log) {
       return await this.logModel.create({ akey });
     } else {
-      if (syncDto.charging != null && syncDto.charging !== log.isCharge) {
+      if (syncDto.charging != null && log.type == TYPE.UNKNOWN) {
+        log.type = syncDto.charging ? TYPE.CHARGE : TYPE.DRIVE;
+        await log.save();
+      } else if (syncDto.charging && log.type != TYPE.CHARGE || syncDto.charging == false && log.type != TYPE.DRIVE) {
         log.status = STATUS.FINISHED;
         await log.save();
         this.eventEmitter.emit(LOG_FINISHED_EVENT, log);
@@ -72,14 +76,14 @@ export class LogsService {
     return new LastSyncDto(lastSync);
   }
 
-  async findAll(akey: string, isCharge?: boolean): Promise<LogDto[]> {
+  async findAll(akey: string, type?: TYPE): Promise<LogDto[]> {
     const logs = this.logModel
       .find({ akey })
       .select('-history')
       .sort('startDate');
 
-    if (isCharge != null) {
-      logs.where({ isCharge });
+    if (type != null) {
+      logs.where({ type });
     }
 
     return Promise.resolve((await logs).map((log) => new LogDto(log)));

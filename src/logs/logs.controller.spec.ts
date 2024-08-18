@@ -14,6 +14,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { UpdateLogDto } from './dto/update-log.dto';
 import { STATUS } from './entities/status.entity';
 import { LastSyncDto } from './dto/last-sync.dto';
+import { TYPE } from './entities/type.entity';
 
 describe('LogsController', () => {
   let accountService: AccountService;
@@ -123,7 +124,7 @@ describe('LogsController', () => {
   });
 
   it('should be able to filter out log in list', async () => {
-    const response = await controller.findAll(testAccount.akey, false);
+    const response = await controller.findAll(testAccount.akey, TYPE.DRIVE);
 
     expect(response).toHaveLength(0);
   });
@@ -221,6 +222,7 @@ describe('LogsController', () => {
     const response = await controller.findAll(testAccount.akey);
 
     expect(response).toHaveLength(1);
+    expect(response.at(0)).toHaveProperty('type', TYPE.UNKNOWN);
 
     logId = response[0].id;
   });
@@ -256,6 +258,20 @@ describe('LogsController', () => {
     );
   });
 
+  it('should update log type instead of creating new log if unknown', async () => {
+    const dto = new SyncDto();
+
+    dto.charging = false;
+
+    await controller.syncData(testAccount.akey, dto);
+
+    const response = await controller.findAll(testAccount.akey);
+
+    expect(response).toHaveLength(1);
+    expect(response.at(0)).toHaveProperty('id', logId);
+    expect(response.at(0)).toHaveProperty('type', TYPE.DRIVE);
+  });
+
   it('should create a new log once charging started', async () => {
     const dto = new SyncDto();
 
@@ -268,6 +284,7 @@ describe('LogsController', () => {
     const response = await controller.findAll(testAccount.akey);
 
     expect(response).toHaveLength(2);
+    expect(response.at(1)).toHaveProperty('type', TYPE.CHARGE);
     chargeLogId = response[1].id;
   });
 
@@ -283,7 +300,7 @@ describe('LogsController', () => {
     const response = await controller.findOne(testAccount.akey, chargeLogId);
 
     expect(response).toBeInstanceOf(LogDto);
-    expect(response).toHaveProperty('isCharge', true);
+    expect(response).toHaveProperty('type', TYPE.CHARGE);
     expect(response).toHaveProperty('startSOC', 75);
     expect(response).toHaveProperty('averageKW', 10);
   });

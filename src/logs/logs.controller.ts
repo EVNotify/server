@@ -22,6 +22,7 @@ import { SyncDto } from './dto/sync.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { LogNotExistsException } from './exceptions/log-not-exists.exception';
 import { LogMissingSyncDataException } from './exceptions/log-missing-sync-data.exception';
+import { TYPE } from './entities/type.entity';
 
 @Controller('logs')
 @UseGuards(AuthGuard)
@@ -32,8 +33,8 @@ export class LogsController {
   constructor(private readonly logsService: LogsService) {}
 
   @Get(':akey')
-  async findAll(@Param('akey') akey: string, @Query('isCharge') isCharge?: boolean) {
-    return this.logsService.findAll(akey, isCharge);
+  async findAll(@Param('akey') akey: string, @Query('type') type?: TYPE) {
+    return this.logsService.findAll(akey, type);
   }
 
   @Get(':akey/last-sync')

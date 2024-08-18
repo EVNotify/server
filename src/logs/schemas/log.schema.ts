@@ -3,6 +3,7 @@ import { Document, Types } from 'mongoose';
 import { AKEY_LENGTH } from '../../account/dto/account.dto';
 import { STATUS } from '../entities/status.entity';
 import { Sync } from './sync.schema';
+import { TYPE } from '../entities/type.entity';
 
 export type LogDocument = Log & Document;
 
@@ -34,8 +35,12 @@ export class Log {
   })
   status: STATUS;
 
-  @Prop()
-  isCharge: boolean;
+  @Prop({
+    required: true,
+    default: TYPE.UNKNOWN,
+    enum: TYPE,
+  })
+  type: TYPE;
 
   @Prop()
   startDate: Date;

@@ -11,6 +11,7 @@ import {
 } from 'class-validator';
 import { STATUS } from '../entities/status.entity';
 import { Log } from '../schemas/log.schema';
+import { TYPE } from '../entities/type.entity';
 
 export class LogDto {
   constructor(log?: Log) {
@@ -18,9 +19,9 @@ export class LogDto {
     this.updatedAt = log?.updatedAt;
     this.title = log?.title;
     this.status = log?.status;
+    this.type = log?.type;
     this.startDate = log?.startDate;
     this.endDate = log?.endDate;
-    this.isCharge = log?.isCharge;
     this.startSOC = log?.startSOC;
     this.endSOC = log?.endSOC;
     this.startODO = log?.startODO;
@@ -50,6 +51,10 @@ export class LogDto {
   @IsNotEmpty()
   status: STATUS = STATUS.RUNNING;
 
+  @IsEnum(TYPE)
+  @IsNotEmpty()
+  type: TYPE = TYPE.UNKNOWN;
+
   @IsDate()
   @IsNotEmpty()
   startDate: Date;
@@ -57,9 +62,6 @@ export class LogDto {
   @IsDate()
   @IsOptional()
   endDate: Date;
-
-  @IsBoolean()
-  isCharge = false;
 
   @IsNumber()
   @Min(0)

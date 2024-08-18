@@ -1,11 +1,12 @@
-import { IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsEnum } from 'class-validator';
+import { TYPE } from '../entities/type.entity';
 
 export class UpdateLogDto {
   @IsString()
   @IsOptional()
   title: string;
 
-  @IsBoolean()
+  @IsEnum(TYPE)
   @IsOptional()
-  isCharge = false;
+  type: TYPE = TYPE.UNKNOWN;
 }
