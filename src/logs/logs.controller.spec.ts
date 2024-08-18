@@ -222,6 +222,7 @@ describe('LogsController', () => {
     const response = await controller.findAll(testAccount.akey);
 
     expect(response).toHaveLength(1);
+    expect(response.at(0)).toHaveProperty('type', TYPE.UNKNOWN);
 
     logId = response[0].id;
   });
@@ -257,6 +258,20 @@ describe('LogsController', () => {
     );
   });
 
+  it('should update log type instead of creating new log if unknown', async () => {
+    const dto = new SyncDto();
+
+    dto.charging = false;
+
+    await controller.syncData(testAccount.akey, dto);
+
+    const response = await controller.findAll(testAccount.akey);
+
+    expect(response).toHaveLength(1);
+    expect(response.at(0)).toHaveProperty('id', logId);
+    expect(response.at(0)).toHaveProperty('type', TYPE.DRIVE);
+  });
+
   it('should create a new log once charging started', async () => {
     const dto = new SyncDto();
 
@@ -269,6 +284,7 @@ describe('LogsController', () => {
     const response = await controller.findAll(testAccount.akey);
 
     expect(response).toHaveLength(2);
+    expect(response.at(1)).toHaveProperty('type', TYPE.CHARGE);
     chargeLogId = response[1].id;
   });
 
