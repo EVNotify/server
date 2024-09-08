@@ -18,6 +18,7 @@ import { LastSync } from './schemas/last-sync.schema';
 import { Log } from './schemas/log.schema';
 import { Sync } from './schemas/sync.schema';
 import { TYPE } from './entities/type.entity';
+import { LogNotRunningException } from './exceptions/log-not-running.exception';
 
 @Injectable()
 export class LogsService {
@@ -76,11 +77,23 @@ export class LogsService {
     return new LastSyncDto(lastSync);
   }
 
+  async findRunning(akey: string): Promise<LogDto> {
+    const log = await this.logModel
+      .findOne({ akey, status: STATUS.RUNNING })
+      .select('-history');
+
+    if (!log) {
+      throw new LogNotRunningException();
+    }
+
+    return Promise.resolve(new LogDto(log));
+  }
+
   async findAll(akey: string, type?: TYPE): Promise<LogDto[]> {
     const logs = this.logModel
       .find({ akey })
       .select('-history')
-      .sort('startDate');
+      .sort({startDate: 'desc'});
 
     if (type != null) {
       logs.where({ type });

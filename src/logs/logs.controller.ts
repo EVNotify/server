@@ -23,6 +23,7 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { LogNotExistsException } from './exceptions/log-not-exists.exception';
 import { LogMissingSyncDataException } from './exceptions/log-missing-sync-data.exception';
 import { TYPE } from './entities/type.entity';
+import { LogNotRunningException } from './exceptions/log-not-running.exception';
 
 @Controller('logs')
 @UseGuards(AuthGuard)
@@ -40,6 +41,19 @@ export class LogsController {
   @Get(':akey/last-sync')
   async lastSync(@Param('akey') akey: string) {
     return this.logsService.lastSync(akey);
+  }
+
+  @Get(':akey/running')
+  async findRunning(@Param('akey') akey: string) {
+    try {
+      return await this.logsService.findRunning(akey);
+    } catch (error) {
+      if (error instanceof LogNotRunningException) {
+        throw new NotFoundException(error.message);
+      }
+
+      throw new InternalServerErrorException();
+    }
   }
 
   @Get(':akey/:id')
