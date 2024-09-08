@@ -284,8 +284,8 @@ describe('LogsController', () => {
     const response = await controller.findAll(testAccount.akey);
 
     expect(response).toHaveLength(2);
-    expect(response.at(1)).toHaveProperty('type', TYPE.CHARGE);
-    chargeLogId = response[1].id;
+    expect(response.at(0)).toHaveProperty('type', TYPE.CHARGE);
+    chargeLogId = response[0].id;
   });
 
   it('should mark previous log as finished', async () => {
@@ -301,6 +301,7 @@ describe('LogsController', () => {
 
     expect(response).toBeInstanceOf(LogDto);
     expect(response).toHaveProperty('type', TYPE.CHARGE);
+    expect(response).toHaveProperty('status', STATUS.RUNNING);
     expect(response).toHaveProperty('startSOC', 75);
     expect(response).toHaveProperty('averageKW', 10);
   });
@@ -316,5 +317,12 @@ describe('LogsController', () => {
 
     expect(response).toBeInstanceOf(LogDto);
     expect(response).toHaveProperty('averageKW', 6);
+  });
+
+  it('should find current running log', async () => {
+    const response = await controller.findRunning(testAccount.akey);
+
+    expect(response).toBeInstanceOf(LogDto);
+    expect(response).toHaveProperty('id', chargeLogId);
   });
 });
