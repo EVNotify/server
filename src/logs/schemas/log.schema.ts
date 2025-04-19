@@ -103,6 +103,16 @@ export class Log {
   })
   averageSpeed: number;
 
+  @Prop({
+    min: 0,
+  })
+  rechargedKW: number;
+
+  @Prop({
+    min: 0,
+  })
+  dischargedKW: number;
+
   @Prop()
   history: [Sync];
 }

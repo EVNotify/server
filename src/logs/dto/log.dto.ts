@@ -1,5 +1,4 @@
 import {
-  IsBoolean,
   IsDate,
   IsEnum,
   IsNotEmpty,
@@ -33,6 +32,8 @@ export class LogDto {
     this.averageKW = log?.averageKW;
     this.distance = log?.distance;
     this.averageSpeed = log?.averageSpeed;
+    this.rechargedKW = log?.rechargedKW;
+    this.dischargedKW = log?.dischargedKW;
   }
 
   @IsString()
@@ -107,4 +108,12 @@ export class LogDto {
   @IsNumber()
   @Min(0)
   averageSpeed: number;
+
+  @IsNumber()
+  @Min(0)
+  rechargedKW: number;
+
+  @IsNumber()
+  @Min(0)
+  dischargedKW: number;
 }

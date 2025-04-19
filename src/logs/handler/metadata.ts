@@ -68,6 +68,8 @@ export class MetadataHandler {
       'speed',
       'latitude',
       'longitude',
+      'cec',
+      'ced',
     ];
 
     if (
@@ -105,6 +107,14 @@ export class MetadataHandler {
         (averageSpeeds.length + 1);
     }
     // TODO calculate distance
+
+    if (sync.cec != null && log.startCEC) {
+      log.rechargedKW = parseFloat((sync.cec - log.startCEC).toFixed(1));
+    }
+
+    if (sync.ced != null && log.startCED) {
+      log.dischargedKW = parseFloat((sync.ced - log.startCED).toFixed(1));
+    }
   }
 
   private async setEndMetadata(log: Log) {
