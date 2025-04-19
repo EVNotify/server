@@ -109,11 +109,11 @@ export class MetadataHandler {
     // TODO calculate distance
 
     if (sync.cec != null && log.startCEC) {
-      log.rechargedKW = parseFloat((sync.cec - log.startCEC).toFixed(1));
+      log.rechargedKWh = parseFloat((sync.cec - log.startCEC).toFixed(1));
     }
 
     if (sync.ced != null && log.startCED) {
-      log.dischargedKW = parseFloat((sync.ced - log.startCED).toFixed(1));
+      log.dischargedKWh = parseFloat((sync.ced - log.startCED).toFixed(1));
     }
   }
 

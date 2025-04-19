@@ -106,12 +106,12 @@ export class Log {
   @Prop({
     min: 0,
   })
-  rechargedKW: number;
+  rechargedKWh: number;
 
   @Prop({
     min: 0,
   })
-  dischargedKW: number;
+  dischargedKWh: number;
 
   @Prop()
   history: [Sync];
