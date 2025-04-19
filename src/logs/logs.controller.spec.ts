@@ -304,12 +304,15 @@ describe('LogsController', () => {
     expect(response).toHaveProperty('status', STATUS.RUNNING);
     expect(response).toHaveProperty('startSOC', 75);
     expect(response).toHaveProperty('averageKW', 10);
+    expect(response).toHaveProperty('rechargedKW', undefined);
+    expect(response).toHaveProperty('dischargedKW', undefined);
   });
 
   it('should update metadata when adding new data', async () => {
     const dto = new SyncDto();
 
     dto.dcBatteryPower = 2;
+    dto.cec = 30069.1;
 
     await controller.syncData(testAccount.akey, dto);
 
@@ -317,6 +320,21 @@ describe('LogsController', () => {
 
     expect(response).toBeInstanceOf(LogDto);
     expect(response).toHaveProperty('averageKW', 6);
+    expect(response).toHaveProperty('rechargedKW', 0);
+    expect(response).toHaveProperty('dischargedKW', undefined);
+  });
+
+  it('should update rechargedKW metadata when adding new cec value', async () => {
+    const dto = new SyncDto();
+
+    dto.cec = 30069.3;
+
+    await controller.syncData(testAccount.akey, dto);
+
+    const response = await controller.findOne(testAccount.akey, chargeLogId);
+
+    expect(response).toBeInstanceOf(LogDto);
+    expect(response).toHaveProperty('rechargedKW', 0.2);
   });
 
   it('should find current running log', async () => {
