@@ -304,8 +304,8 @@ describe('LogsController', () => {
     expect(response).toHaveProperty('status', STATUS.RUNNING);
     expect(response).toHaveProperty('startSOC', 75);
     expect(response).toHaveProperty('averageKW', 10);
-    expect(response).toHaveProperty('rechargedKW', undefined);
-    expect(response).toHaveProperty('dischargedKW', undefined);
+    expect(response).toHaveProperty('rechargedKWh', undefined);
+    expect(response).toHaveProperty('dischargedKWh', undefined);
   });
 
   it('should update metadata when adding new data', async () => {
@@ -320,11 +320,11 @@ describe('LogsController', () => {
 
     expect(response).toBeInstanceOf(LogDto);
     expect(response).toHaveProperty('averageKW', 6);
-    expect(response).toHaveProperty('rechargedKW', 0);
-    expect(response).toHaveProperty('dischargedKW', undefined);
+    expect(response).toHaveProperty('rechargedKWh', 0);
+    expect(response).toHaveProperty('dischargedKWh', undefined);
   });
 
-  it('should update rechargedKW metadata when adding new cec value', async () => {
+  it('should update rechargedKWh metadata when adding new cec value', async () => {
     const dto = new SyncDto();
 
     dto.cec = 30069.3;
@@ -334,7 +334,7 @@ describe('LogsController', () => {
     const response = await controller.findOne(testAccount.akey, chargeLogId);
 
     expect(response).toBeInstanceOf(LogDto);
-    expect(response).toHaveProperty('rechargedKW', 0.2);
+    expect(response).toHaveProperty('rechargedKWh', 0.2);
   });
 
   it('should find current running log', async () => {

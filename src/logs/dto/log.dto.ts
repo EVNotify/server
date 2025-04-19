@@ -32,8 +32,8 @@ export class LogDto {
     this.averageKW = log?.averageKW;
     this.distance = log?.distance;
     this.averageSpeed = log?.averageSpeed;
-    this.rechargedKW = log?.rechargedKW;
-    this.dischargedKW = log?.dischargedKW;
+    this.rechargedKWh = log?.rechargedKWh;
+    this.dischargedKWh = log?.dischargedKWh;
   }
 
   @IsString()
@@ -111,9 +111,9 @@ export class LogDto {
 
   @IsNumber()
   @Min(0)
-  rechargedKW: number;
+  rechargedKWh: number;
 
   @IsNumber()
   @Min(0)
-  dischargedKW: number;
+  dischargedKWh: number;
 }
