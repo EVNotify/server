@@ -7,6 +7,7 @@ import { SettingsModule } from './settings/settings.module';
 import { LogsModule } from './logs/logs.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MigrationModule } from './migration/migration.module';
+import { PremiumModule } from './premium/premium.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MigrationModule } from './migration/migration.module';
     SettingsModule,
     LogsModule,
     MigrationModule,
+    PremiumModule,
   ],
   controllers: [],
   providers: [],

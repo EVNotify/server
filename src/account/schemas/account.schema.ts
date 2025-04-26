@@ -19,6 +19,9 @@ export class Account {
 
   @Prop({ required: true, minlength: TOKEN_LENGTH, maxlength: TOKEN_LENGTH })
   token: string;
+
+  @Prop({ type: Date, default: null })
+  premiumUntil?: Date;
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);
