@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { LastSyncDto } from './dto/last-sync.dto';
 import { LogDto } from './dto/log.dto';
 import { SyncDto } from './dto/sync.dto';
@@ -19,6 +19,7 @@ import { Log } from './schemas/log.schema';
 import { Sync } from './schemas/sync.schema';
 import { TYPE } from './entities/type.entity';
 import { LogNotRunningException } from './exceptions/log-not-running.exception';
+import { HISTORY_TYPE } from './entities/history-type.entity';
 
 @Injectable()
 export class LogsService {
@@ -114,16 +115,79 @@ export class LogsService {
     return Promise.resolve(new LogDto(log));
   }
 
-  async findOneWithHistory(akey: string, id: string) {
-    const log = await this.logModel
-      .findOne({ akey, _id: id })
-      .select('history');
+  async findOneWithHistory(akey: string, id: string, type: HISTORY_TYPE = HISTORY_TYPE.ALL): Promise<Sync[]> {
+    let history = [];
 
-    if (!log) {
-      throw new LogNotExistsException();
+    switch (type) {
+      case HISTORY_TYPE.ALL:
+        const logWithAllHistory = await this.logModel
+          .findOne({ akey, _id: id })
+          .select('history');
+
+        if (!logWithAllHistory) {
+          throw new LogNotExistsException();
+        }
+
+        history = logWithAllHistory.history;
+        break;
+      case HISTORY_TYPE.LOCATION_DATA:
+        const logWithLocationHistory = await this.logModel.aggregate([
+          {
+            $match: { akey, _id: new Types.ObjectId(id) }
+          },
+          {
+            $project: {
+              _id: 0,
+              history: {
+                $filter: {
+                  input: '$history',
+                  as: 'entry',
+                  cond: {
+                    $and: [
+                      { $in: [{ $type: '$$entry.latitude' }, ['double', 'int', 'long']] },
+                      { $in: [{ $type: '$$entry.longitude' }, ['double', 'int', 'long']] },
+                    ],
+                  },
+                },
+              },
+            }
+          }
+        ]);
+
+        history = logWithLocationHistory.map((entry) => entry.history)[0];
+        break;
+      case HISTORY_TYPE.BATTERY_DATA:
+        const logWithBatteryHistory = await this.logModel.aggregate([
+          {
+            $match: { akey, _id: new Types.ObjectId(id) }
+          },
+          {
+            $project: {
+              _id: 0,
+              history: {
+                $filter: {
+                  input: '$history',
+                  as: 'entry',
+                  cond: {
+                    $or: [
+                      { $in: [{ $type: '$$entry.socDisplay' }, ['double', 'int', 'long']] },
+                      { $in: [{ $type: '$$entry.socBMS' }, ['double', 'int', 'long']] },
+                      { $in: [{ $type: '$$entry.dcBatteryPower' }, ['double', 'int', 'long']] },
+                    ],
+                  },
+                },
+              },
+            }
+          }
+        ]);
+
+        history = logWithBatteryHistory.map((entry) => entry.history)[0];
+        break;
+      default:
+        break;
     }
 
-    return log.history;
+    return history;
   }
 
   async update(

@@ -15,6 +15,7 @@ import { UpdateLogDto } from './dto/update-log.dto';
 import { STATUS } from './entities/status.entity';
 import { LastSyncDto } from './dto/last-sync.dto';
 import { TYPE } from './entities/type.entity';
+import { HISTORY_TYPE } from './entities/history-type.entity';
 
 describe('LogsController', () => {
   let accountService: AccountService;
@@ -161,7 +162,8 @@ describe('LogsController', () => {
   it('should be able to sync data with a timestamp', async () => {
     const dto = new SyncDto();
 
-    dto.socDisplay = 80;
+    dto.latitude = 32.123;
+    dto.longitude = 34.111;
     dto.timestamp = '2022-11-06T22:15:58.238Z';
 
     const response = await controller.syncData(testAccount.akey, dto);
@@ -176,11 +178,49 @@ describe('LogsController', () => {
     );
 
     expect(response).toHaveLength(2);
-    expect(response.at(1)).toHaveProperty('socDisplay', 80);
+    expect(response.at(1)).toHaveProperty('latitude', 32.123);
+    expect(response.at(1)).toHaveProperty('longitude', 34.111);
     expect(response.at(1)).toHaveProperty(
       'timestamp',
       '2022-11-06T22:15:58.238Z',
     );
+  });
+
+  it('should be able to retrieve location log history', async () => {
+    const response = await controller.findOneWithHistory(
+      testAccount.akey,
+      logId,
+      HISTORY_TYPE.LOCATION_DATA
+    );
+
+    expect(response).toHaveLength(1);
+    expect(response.at(0)).toHaveProperty('latitude', 32.123);
+    expect(response.at(0)).toHaveProperty('longitude', 34.111);
+    expect(response.at(0)).toHaveProperty(
+      'timestamp',
+      '2022-11-06T22:15:58.238Z',
+    );
+  });
+
+  it('should be able to retrieve battery log history', async () => {
+    const response = await controller.findOneWithHistory(
+      testAccount.akey,
+      logId,
+      HISTORY_TYPE.BATTERY_DATA
+    );
+
+    expect(response).toHaveLength(1);
+    expect(response.at(0)).toHaveProperty('socDisplay', 80);
+  });
+
+  it('should be able to retrieve all log history', async () => {
+    const response = await controller.findOneWithHistory(
+      testAccount.akey,
+      logId,
+      HISTORY_TYPE.ALL
+    );
+
+    expect(response).toHaveLength(2);
   });
 
   it('should be able to update log', async () => {
