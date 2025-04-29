@@ -24,6 +24,7 @@ import { LogNotExistsException } from './exceptions/log-not-exists.exception';
 import { LogMissingSyncDataException } from './exceptions/log-missing-sync-data.exception';
 import { TYPE } from './entities/type.entity';
 import { LogNotRunningException } from './exceptions/log-not-running.exception';
+import { HISTORY_TYPE } from './entities/history-type.entity';
 
 @Controller('logs')
 @UseGuards(AuthGuard)
@@ -75,9 +76,10 @@ export class LogsController {
   async findOneWithHistory(
     @Param('akey') akey: string,
     @Param('id') id: string,
+    @Query('type') type?: HISTORY_TYPE,
   ) {
     try {
-      return await this.logsService.findOneWithHistory(akey, id);
+      return await this.logsService.findOneWithHistory(akey, id, type);
     } catch (error) {
       if (error instanceof LogNotExistsException) {
         throw new NotFoundException(error.message);
