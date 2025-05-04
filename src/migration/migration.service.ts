@@ -3,9 +3,9 @@ import { MigrationAccount } from "./schemas/migration-account.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { MigrationAccountNotFound } from "./exceptions/migration-account-not-found.exception";
-import { LogsService } from "src/logs/logs.service";
+import { LogsService } from "../logs/logs.service";
 import { MigrateSocDto } from "./dto/migrate-soc.dto";
-import { SyncDto } from "src/logs/dto/sync.dto";
+import { SyncDto } from "../logs/dto/sync.dto";
 
 @Injectable()
 export class MigrationService {

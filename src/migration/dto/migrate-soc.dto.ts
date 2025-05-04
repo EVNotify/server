@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { IsNotEmptyObject, IsNumber, IsOptional, Length, Max, Min, ValidateNested } from "class-validator";
-import { AKEY_LENGTH, TOKEN_LENGTH } from "src/account/dto/account.dto";
+import { AKEY_LENGTH, TOKEN_LENGTH } from "../../account/dto/account.dto";
 
 class SocData {
     @IsOptional()

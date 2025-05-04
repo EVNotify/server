@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { AKEY_LENGTH, TOKEN_LENGTH } from "src/account/dto/account.dto";
+import { AKEY_LENGTH, TOKEN_LENGTH } from "../../account/dto/account.dto";
 
 @Schema()
 export class MigrationAccount {
