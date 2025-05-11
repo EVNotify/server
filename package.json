@@ -36,6 +36,7 @@
     "mongoose": "^8.5.1",
     "npm-check-updates": "^16.14.20",
     "reflect-metadata": "^0.1.13",
+    "resend": "^4.5.1",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0"
   },

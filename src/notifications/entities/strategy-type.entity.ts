@@ -1,0 +1,6 @@
+export enum STRATEGY_TYPE {
+  EMAIL = 'EMAIL',
+  TELEGRAM = 'TELEGRAM',
+  PUSH = 'PUSH',
+  WEBHOOK = 'WEBHOOK',
+}

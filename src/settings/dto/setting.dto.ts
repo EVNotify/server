@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsEmail,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -37,6 +38,7 @@ export class SettingDto {
     this.consumptionUnit = settings?.consumptionUnit;
     this.rangeUnit = settings?.rangeUnit;
     this.device = settings?.device;
+    this.email = settings?.email;
   }
 
   @IsBoolean()
@@ -78,4 +80,8 @@ export class SettingDto {
   @IsString()
   @IsOptional()
   device?: string;
+
+  @IsEmail()
+  @IsOptional()
+  email?: string;
 }

@@ -62,6 +62,14 @@ export class MetadataHandler {
     }
   }
 
+  private setCurrentMetadata(log: Log, sync: Sync) {
+    if (!sync.socDisplay && !sync.socBMS) {
+      return;
+    }
+
+    log.currentSOC = sync.socDisplay || sync.socBMS;
+  }
+
   private setSummarizedMetadata(log: Log, sync: Sync) {
     const summarizableFields = [
       'dcBatteryPower',
@@ -163,6 +171,7 @@ export class MetadataHandler {
 
   async handleSyncEvent(payload: { log: Log; sync: Sync }) {
     this.setOneTimeMetadata(payload.log, payload.sync);
+    this.setCurrentMetadata(payload.log, payload.sync);
     this.setSummarizedMetadata(payload.log, payload.sync);
     this.saveMetadata(payload.log);
   }

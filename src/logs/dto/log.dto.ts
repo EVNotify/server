@@ -22,6 +22,7 @@ export class LogDto {
     this.startDate = log?.startDate;
     this.endDate = log?.endDate;
     this.startSOC = log?.startSOC;
+    this.currentSOC = log?.currentSOC;
     this.endSOC = log?.endSOC;
     this.startODO = log?.startODO;
     this.endODO = log?.endODO;
@@ -68,6 +69,11 @@ export class LogDto {
   @Min(0)
   @Max(100)
   startSOC: number;
+
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  currentSOC: number;
 
   @IsNumber()
   @Min(0)

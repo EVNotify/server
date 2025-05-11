@@ -58,6 +58,12 @@ export class Log {
     min: 0,
     max: 100,
   })
+  currentSOC: number;
+
+  @Prop({
+    min: 0,
+    max: 100,
+  })
   endSOC: number;
 
   @Prop({
@@ -115,6 +121,9 @@ export class Log {
 
   @Prop()
   history: [Sync];
+
+  @Prop()
+  thresholdReached: Date;
 }
 
 export const LogSchema = SchemaFactory.createForClass(Log);
