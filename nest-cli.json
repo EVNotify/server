@@ -3,6 +3,16 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
-    "plugins": ["@nestjs/swagger"]
+    "plugins": ["@nestjs/swagger"],
+    "assets": [
+      {
+        "include": "notifications/templates/**/*",
+        "outDir": "dist"
+      },
+      {
+        "include": "translator/i18n/*",
+        "outDir": "dist"
+      }
+    ]
   }
 }
