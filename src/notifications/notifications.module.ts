@@ -5,6 +5,8 @@ import { SettingsService } from 'src/settings/settings.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Settings, SettingsSchema } from 'src/settings/schemas/settings.schema';
 import { Log, LogSchema } from 'src/logs/schemas/log.schema';
+import { TemplateCacheService } from './templates/template-cache.service';
+import { TranslatorService } from 'src/translator/translator.service';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { Log, LogSchema } from 'src/logs/schemas/log.schema';
     NotificationHandler,
     EmailStrategy,
     SettingsService,
+    TemplateCacheService,
+    TranslatorService,
   ],
   exports: [],
 })
