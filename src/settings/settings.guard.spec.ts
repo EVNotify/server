@@ -1,53 +1,95 @@
-import { createMock } from '@golevelup/ts-jest';
-import { ExecutionContext } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Test, TestingModule } from '@nestjs/testing';
-import mongoose from 'mongoose';
+import { BadRequestException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { SettingsGuard } from './settings.guard';
-import { SettingsModule } from './settings.module';
+import { ExecutionContext } from '@nestjs/common';
+import { FIELD_TYPE_SETTINGS } from './decorators/settings-field.decorator';
+
+jest.mock('@nestjs/core');
 
 describe('SettingsGuard', () => {
-  let settingsGuard: SettingsGuard;
+  let guard: SettingsGuard;
+  let reflector: Reflector;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        SettingsModule,
-        ConfigModule.forRoot(),
-        MongooseModule.forRoot(process.env.DATABASE_URI),
-      ],
-    }).compile();
-
-    settingsGuard = module.get<SettingsGuard>(SettingsGuard);
+  beforeEach(() => {
+    reflector = new Reflector();
+    guard = new SettingsGuard(reflector);
   });
 
-  afterAll(async () => {
-    await mongoose.disconnect();
+  const createMockContext = (handler: any, req: any): ExecutionContext =>
+    ({
+      getHandler: () => handler,
+      switchToHttp: () => ({
+        getRequest: () => req,
+      }),
+    } as any as ExecutionContext);
+
+  it('should not be able to proceed if no settings field given', async () => {
+    jest
+      .spyOn(reflector, 'get')
+      .mockReturnValue(FIELD_TYPE_SETTINGS);
+
+    const req = { body: {} };
+    const context = createMockContext(() => {}, req);
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
-  it('should be defined', () => {
-    expect(settingsGuard).toBeDefined();
+  it('should not be able to proceed if invalid setting field given', async () => {
+    jest
+      .spyOn(reflector, 'get')
+      .mockReturnValue(FIELD_TYPE_SETTINGS);
+
+    const req = { body: { foo: 'bar' } };
+    const context = createMockContext(() => {}, req);
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
-  it('should be able to proceed if not a setting field type', async () => {
-    const mockContext = createMock<ExecutionContext>();
+  it('should be able to proceed with valid setting url param field', async () => {
+    jest
+      .spyOn(reflector, 'get')
+      .mockReturnValue(FIELD_TYPE_SETTINGS);
 
-    expect(async () => {
-      await settingsGuard.canActivate(mockContext);
-    }).resolves;
+    const req = { params: { email: 'test@example.com' } };
+    const context = createMockContext(() => {}, req);
+
+    await expect(guard.canActivate(context)).resolves.toBe(true);
   });
 
-  // FIXME not able to set execution context with metadata that can be resolved by reflector..
-  test.todo('should not be able to proceed if no settings field given');
+  it('should be able to proceed with valid setting body field', async () => {
+    jest
+      .spyOn(reflector, 'get')
+      .mockReturnValue(FIELD_TYPE_SETTINGS);
 
-  test.todo('should not be able to proceed if invalid setting field given');
+    const req = { body: { email: 'test@example.com' } };
+    const context = createMockContext(() => {}, req);
 
-  test.todo('should be able to proceed with valid setting url param field');
+    await expect(guard.canActivate(context)).resolves.toBe(true);
+  });
 
-  test.todo('should be able to proceed with valid setting body field');
+  it('should not be able to proceed with setting body field containing an invalid value', async () => {
+    jest
+      .spyOn(reflector, 'get')
+      .mockReturnValue(FIELD_TYPE_SETTINGS);
 
-  test.todo(
-    'should not be able to proceed with setting body field containing a invalid field',
-  );
+    const req = { body: { email: 'invalid' } };
+    const context = createMockContext(() => {}, req);
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      BadRequestException,
+    );
+  });
+
+  it('should allow non-settings fieldType', async () => {
+    jest.spyOn(reflector, 'get').mockReturnValue('not-settings');
+
+    const req = { body: {} };
+    const context = createMockContext(() => {}, req);
+
+    await expect(guard.canActivate(context)).resolves.toBe(true);
+  });
 });
