@@ -15,6 +15,7 @@ import { LANGUAGES } from '../entities/language.entity';
 import { RANGE_UNITS } from '../entities/range.entity';
 import { Settings } from '../schemas/settings.schema';
 
+// TODO can this be done better?
 export const FIELDS = [
   'logSummary',
   'socThreshold',
@@ -25,6 +26,7 @@ export const FIELDS = [
   'consumptionUnit',
   'rangeUnit',
   'device',
+  'email',
 ];
 
 export class SettingDto {
