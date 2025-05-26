@@ -20,21 +20,18 @@ export class SettingsGuard implements CanActivate {
     );
 
     if (fieldType !== FIELD_TYPE_SETTINGS) {
-      return Promise.resolve(true);
+      return true;
     }
 
     const req = context.switchToHttp().getRequest();
-    let params = [];
+    const sourceData = {
+      ...(req.params || {}),
+      ...(req.body || {}),
+    };
 
-    if (req.params.field) {
-      params[req.params.field] = null;
-    } else {
-      params = req.body;
-    }
-
-    const hasSettingsField = Object.keys(params).some((field) => {
-      return FIELDS.some((dtoField) => dtoField === field);
-    });
+    const hasSettingsField = Object.keys(sourceData).some((field) =>
+      FIELDS.includes(field),
+    );
 
     if (!hasSettingsField) {
       throw new BadRequestException(
@@ -42,13 +39,13 @@ export class SettingsGuard implements CanActivate {
       );
     }
 
-    const dto = plainToInstance(SettingDto, params);
+    const dto = plainToInstance(SettingDto, sourceData);
     const errors = await validate(dto, { skipMissingProperties: true });
 
     if (errors.length) {
       throw new BadRequestException(errors);
     }
 
-    return Promise.resolve(true);
+    return true;
   }
 }
