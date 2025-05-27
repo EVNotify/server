@@ -61,7 +61,7 @@ describe('PremiumController', () => {
   it('should not be able to retrieve status of non-existing account', async () => {
     await expect(async () => {
       await controller.status(
-        testAccount.akey.replace(/.$/, "1"),
+        testAccount.akey.split("").reverse().join(""),
       );
     }).rejects.toThrow(NotFoundException);
   });
