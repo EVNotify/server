@@ -119,6 +119,7 @@ describe('LogsController', () => {
     expect(response).toHaveLength(1);
     expect(response[0]).toBeInstanceOf(LogDto);
     expect(response[0]).toHaveProperty('startSOC', 80);
+    expect(response[0]).toHaveProperty('currentSOC', 80);
     expect(response[0]).toHaveProperty('updatedAt');
     logId = response[0].id;
     syncTimestamp = response[0].updatedAt;
@@ -343,6 +344,7 @@ describe('LogsController', () => {
     expect(response).toHaveProperty('type', TYPE.CHARGE);
     expect(response).toHaveProperty('status', STATUS.RUNNING);
     expect(response).toHaveProperty('startSOC', 75);
+    expect(response).toHaveProperty('currentSOC', 75);
     expect(response).toHaveProperty('averageKW', 10);
     expect(response).toHaveProperty('rechargedKWh', undefined);
     expect(response).toHaveProperty('dischargedKWh', undefined);
@@ -353,6 +355,7 @@ describe('LogsController', () => {
 
     dto.dcBatteryPower = 2;
     dto.cec = 30069.1;
+    dto.socDisplay = 77;
 
     await controller.syncData(testAccount.akey, dto);
 
@@ -361,6 +364,8 @@ describe('LogsController', () => {
     expect(response).toBeInstanceOf(LogDto);
     expect(response).toHaveProperty('averageKW', 6);
     expect(response).toHaveProperty('rechargedKWh', 0);
+    expect(response).toHaveProperty('startSOC', 75);
+    expect(response).toHaveProperty('currentSOC', 77);
     expect(response).toHaveProperty('dischargedKWh', undefined);
   });
 

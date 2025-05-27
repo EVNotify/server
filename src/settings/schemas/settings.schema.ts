@@ -44,6 +44,9 @@ export class Settings {
 
   @Prop()
   device: string;
+
+  @Prop()
+  email: string;
 }
 
 export const SettingsSchema = SchemaFactory.createForClass(Settings);

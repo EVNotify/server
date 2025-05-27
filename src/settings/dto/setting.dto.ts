@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsEmail,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -14,6 +15,7 @@ import { LANGUAGES } from '../entities/language.entity';
 import { RANGE_UNITS } from '../entities/range.entity';
 import { Settings } from '../schemas/settings.schema';
 
+// TODO can this be done better?
 export const FIELDS = [
   'logSummary',
   'socThreshold',
@@ -24,6 +26,7 @@ export const FIELDS = [
   'consumptionUnit',
   'rangeUnit',
   'device',
+  'email',
 ];
 
 export class SettingDto {
@@ -37,6 +40,7 @@ export class SettingDto {
     this.consumptionUnit = settings?.consumptionUnit;
     this.rangeUnit = settings?.rangeUnit;
     this.device = settings?.device;
+    this.email = settings?.email;
   }
 
   @IsBoolean()
@@ -78,4 +82,8 @@ export class SettingDto {
   @IsString()
   @IsOptional()
   device?: string;
+
+  @IsEmail()
+  @IsOptional()
+  email?: string;
 }

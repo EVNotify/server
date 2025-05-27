@@ -8,6 +8,7 @@ import { LogsModule } from './logs/logs.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MigrationModule } from './migration/migration.module';
 import { PremiumModule } from './premium/premium.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PremiumModule } from './premium/premium.module';
     LogsModule,
     MigrationModule,
     PremiumModule,
+    NotificationsModule,
   ],
   controllers: [],
   providers: [],
