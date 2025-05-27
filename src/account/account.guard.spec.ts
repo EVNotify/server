@@ -62,7 +62,7 @@ describe('AccountGuard', () => {
 
     await expect(async () => {
       await accountGuard.canActivate(mockContext);
-    }).rejects.toThrow(UnauthorizedException);
+    }).rejects.toThrow(BadRequestException);
   });
 
   it('should not be able to proceed with invalid authorization header', async () => {
