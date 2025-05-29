@@ -17,9 +17,6 @@ async function bootstrap() {
     .setTitle('EVNotify API')
     .setDescription('Documentation for EVNotify API')
     .setVersion('3.0')
-    .addTag('Account')
-    .addTag('Settings')
-    .addTag('Logs & Sync')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
