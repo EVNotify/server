@@ -4,6 +4,7 @@ import { TripNotifyService } from "./tripnotify.service";
 import { TripNotifyGateway } from "./tripnotify.gateway";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Trip, TripSchema } from "./schemas/trip.schema";
+import { AccountModule } from "src/account/account.module";
 
 @Module({
   controllers: [TripNotifyController],
@@ -12,6 +13,7 @@ import { Trip, TripSchema } from "./schemas/trip.schema";
     MongooseModule.forFeature([
       { name: Trip.name, schema: TripSchema },
     ]),
+    AccountModule,
   ],
 })
 export class TripNotifyModule {}

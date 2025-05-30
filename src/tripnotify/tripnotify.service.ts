@@ -29,16 +29,18 @@ export class TripNotifyService {
 
   async create(akey: string, dto: CreateTripDto): Promise<TripDto> {
     const now = new Date();
+    const start = new Date(dto.startDate);
+    const end = new Date(dto.endDate);
 
-    if (dto.startDate <= now) {
+    if (start <= now) {
       throw new TripCreationException('Start of the trip must be in the future');
     }
 
-    if (dto.startDate >= dto.endDate) {
+    if (start >= end) {
       throw new TripCreationException('Start must be greater than end date');
     }
 
-    const diffMs = dto.endDate.getTime() - dto.startDate.getTime();
+    const diffMs = end.getTime() - start.getTime();
     const maxMs = 24 * 60 * 60 * 1000;
 
     if (diffMs > maxMs) {

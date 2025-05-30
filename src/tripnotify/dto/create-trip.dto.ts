@@ -1,12 +1,12 @@
-import { IsBoolean, IsDate, IsEnum } from "class-validator";
+import { IsBoolean, IsDateString, IsEnum } from "class-validator";
 import { TripType } from "../entitites/trip-type.entity";
 
 export class CreateTripDto {
-  @IsDate()
-  startDate: Date;
+  @IsDateString()
+  startDate: string;
 
-  @IsDate()
-  endDate: Date;
+  @IsDateString()
+  endDate: string;
 
   @IsBoolean()
   locationEnabled: boolean;

@@ -1,71 +1,161 @@
-<!-- TODO use local assets instead of cdn, integrate api -->
+<!-- TODO: use local assets instead of CDN in production -->
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
   <meta charset="UTF-8" />
   <title>TripNotify</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
-    body, html { margin: 0; height: 100%; font-family: sans-serif; }
-    #app { display: flex; height: 100%; }
-    #map { flex: 1; }
-    #sidebar {
-      width: 300px; padding: 1rem; background: #f4f4f4;
-      overflow-y: auto; border-left: 1px solid #ccc;
+    body,
+    html {
+      margin: 0;
+      height: 100%;
+      font-family: sans-serif;
     }
-    .info-group { margin-bottom: 1rem; }
-    .timeline li::before { content: "⚡"; margin-right: 0.5rem; }
+
+    #app {
+      display: flex;
+      height: 100%;
+    }
+
+    #map {
+      flex: 1;
+    }
+
+    #sidebar {
+      width: 300px;
+      padding: 1rem;
+      background: #f4f4f4;
+      overflow-y: auto;
+      border-left: 1px solid #ccc;
+    }
+
+    .info-group {
+      margin-bottom: 1rem;
+    }
+
+    .timeline li::before {
+      content: "⚡";
+      margin-right: 0.5rem;
+    }
+
+    #error {
+      border-radius: 5px;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    #error.error {
+      background-color: #ffe5e5;
+      color: #a00;
+      border: 1px solid #a00;
+    }
   </style>
 </head>
+
 <body>
   <div id="app">
     <div id="map"></div>
     <div id="sidebar">
       <h2>Trip information</h2>
-      <div class="info-group"><strong>Name:</strong> <span id="name">–</span></div>
-      <div class="info-group"><strong>Start:</strong> <span id="start">–</span></div>
-      <div class="info-group"><strong>End:</strong> <span id="end">–</span></div>
-      <div class="info-group"><strong>Consumed energy:</strong> <span id="consumedEnergy">–</span></div>
-      <div class="info-group"><strong>(Re-)Charged energy:</strong> <span id="chargedEnergy">–</span></div>
-      <div class="info-group"><strong>Ø drive speed:</strong> <span id="avgSpeed">–</span></div>
-      <div class="info-group"><strong>Ø charge speed:</strong> <span id="avgCharge">–</span></div>
-      <div class="info-group"><strong>Charge stops:</strong>
-        <ul id="chargingStops" class="timeline"></ul>
+      <div id="error" class="error"></div>
+      <div id="info">
+        <div class="info-group"><strong>Name:</strong> <span id="name">–</span></div>
+        <div class="info-group"><strong>Start:</strong> <span id="start">–</span></div>
+        <div class="info-group"><strong>End:</strong> <span id="end">–</span></div>
+        <div class="info-group"><strong>Consumed energy:</strong> <span id="consumedEnergy">–</span></div>
+        <div class="info-group"><strong>(Re-)Charged energy:</strong> <span id="chargedEnergy">–</span></div>
+        <div class="info-group"><strong>Ø drive speed:</strong> <span id="avgSpeed">–</span></div>
+        <div class="info-group"><strong>Ø charge speed:</strong> <span id="avgCharge">–</span></div>
+        <div class="info-group"><strong>Charge stops:</strong></div>
       </div>
+      <ul id="chargingStops" class="timeline"></ul>
     </div>
   </div>
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    const socket = io("http://localhost:3000");
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+
+    const nameEl = document.getElementById("name");
+    const startEl = document.getElementById("start");
+    const endEl = document.getElementById("end");
+    const consumedEl = document.getElementById("consumedEnergy");
+    const chargedEl = document.getElementById("chargedEnergy");
+    const avgSpeedEl = document.getElementById("avgSpeed");
+    const avgChargeEl = document.getElementById("avgCharge");
+    const stopsEl = document.getElementById("chargingStops");
+    const errorEl = document.getElementById("error");
+    const infoEl = document.getElementById("info");
+
+    function showError(message) {
+      errorEl.style.display = 'block';
+      errorEl.textContent = message;
+    }
+
+    function hideError() {
+      errorEl.style.display = 'none';
+    }
+
     const map = L.map('map').setView([51.505, -0.09], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     let polyline = L.polyline([], { color: 'blue' }).addTo(map);
     let marker = L.marker([0, 0]).addTo(map);
 
-    socket.on('route-update', (data) => {
-      const [lat, lng] = data.coords;
-      polyline.addLatLng([lat, lng]);
-      marker.setLatLng([lat, lng]);
-      map.panTo([lat, lng]);
+    if (!code) {
+      showError("❗ No code in URL provided. Example: ?code=abc123");
+    } else {
+      fetch(`/trips/${code}`)
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error();
+          }
 
-      document.getElementById("name").textContent = data.info.name;
-      document.getElementById("start").textContent = data.info.start;
-      document.getElementById("end").textContent = data.info.end;
-      document.getElementById("consumedEnergy").textContent = data.info.consumedEnergy;
-      document.getElementById("chargedEnergy").textContent = data.info.chargedEnergy;
-      document.getElementById("avgSpeed").textContent = data.info.avgSpeed + " km/h";
-      document.getElementById("avgCharge").textContent = data.info.avgCharge + " kW";
+          return res.json();
+        })
+        .then((data) => {
+          hideError();
+          updateSidebar(data);
+        })
+        .catch((err) => {
+          showError("Trip could not be loaded");
+        });
 
-      const list = document.getElementById("chargingStops");
-      list.innerHTML = '';
-      data.info.chargingStops.forEach(stop => {
+      const socket = io("http://localhost:3000", {
+        query: { code }
+      });
+
+      socket.on('route-update', (data) => {
+        const [lat, lng] = data.coords;
+        polyline.addLatLng([lat, lng]);
+        marker.setLatLng([lat, lng]);
+        map.panTo([lat, lng]);
+
+        updateSidebar(data.info);
+      });
+    }
+
+    function updateSidebar(info) {
+      nameEl.textContent = info.name || "–";
+      startEl.textContent = info.start || "–";
+      endEl.textContent = info.end || "–";
+      consumedEl.textContent = info.consumedEnergy || "–";
+      chargedEl.textContent = info.chargedEnergy || "–";
+      avgSpeedEl.textContent = info.avgSpeed ? info.avgSpeed + " km/h" : "–";
+      avgChargeEl.textContent = info.avgCharge ? info.avgCharge + " kW" : "–";
+
+      stopsEl.innerHTML = '';
+      (info.chargingStops || []).forEach(stop => {
         const li = document.createElement("li");
         li.textContent = `${stop.time} – ${stop.location}`;
-        list.appendChild(li);
+        stopsEl.appendChild(li);
       });
-    });
+    }
   </script>
 </body>
+
 </html>
