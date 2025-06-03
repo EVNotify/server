@@ -2,11 +2,11 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Trip, TRIP_LENGTH } from "./schemas/trip.schema";
 import { Model } from "mongoose";
-import { TripDto } from "./dto/trip.dto";
 import { TripNotExistsException } from "./exceptions/trip-not-exists.exception";
 import { CreateTripDto } from "./dto/create-trip.dto";
 import { randomBytes } from "crypto";
 import { TripCreationException } from "./exceptions/trip-creation.exception";
+import { TripNotStartedException } from "./exceptions/trip-not-started.exception";
 
 @Injectable()
 export class TripNotifyService {
@@ -14,20 +14,34 @@ export class TripNotifyService {
     @InjectModel(Trip.name) private tripModel: Model<Trip>,
   ) { }
 
-  async findByCode(code: string): Promise<TripDto> {
+  async findAccessibleByCode(code: string): Promise<Trip> {
     const trip = await this.tripModel.findOne({
-      code,
-      endDate: { $gt: new Date() },
+      $and: [
+        { code },
+        {
+          $or: [
+            { accessibleAfterEnd: true },
+            {
+              accessibleAfterEnd: false,
+              endDate: { $lte: new Date() },
+            },
+          ],
+        },
+      ],
     });
 
     if (!trip) {
       throw new TripNotExistsException();
     }
 
-    return new TripDto(trip);
+    if (trip.startDate > new Date()) {
+      throw new TripNotStartedException(trip.startDate);
+    }
+
+    return trip;
   }
 
-  async create(akey: string, dto: CreateTripDto): Promise<TripDto> {
+  async create(akey: string, dto: CreateTripDto): Promise<Trip> {
     const now = new Date();
     const start = new Date(dto.startDate);
     const end = new Date(dto.endDate);
@@ -53,8 +67,6 @@ export class TripNotifyService {
       code: randomBytes(TRIP_LENGTH / 2).toString('hex'),
     };
 
-    const trip = await (new this.tripModel(data)).save();
-
-    return new TripDto(trip);
+    return await (new this.tripModel(data)).save();
   }
 }

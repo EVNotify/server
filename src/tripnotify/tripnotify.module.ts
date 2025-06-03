@@ -5,6 +5,7 @@ import { TripNotifyGateway } from "./tripnotify.gateway";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Trip, TripSchema } from "./schemas/trip.schema";
 import { AccountModule } from "src/account/account.module";
+import { LogsModule } from "src/logs/logs.module";
 
 @Module({
   controllers: [TripNotifyController],
@@ -14,6 +15,7 @@ import { AccountModule } from "src/account/account.module";
       { name: Trip.name, schema: TripSchema },
     ]),
     AccountModule,
+    LogsModule,
   ],
 })
 export class TripNotifyModule {}
