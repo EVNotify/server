@@ -6,6 +6,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { Trip, TripSchema } from "./schemas/trip.schema";
 import { AccountModule } from "src/account/account.module";
 import { LogsModule } from "src/logs/logs.module";
+import { PremiumModule } from "src/premium/premium.module";
 
 @Module({
   controllers: [TripNotifyController],
@@ -16,6 +17,7 @@ import { LogsModule } from "src/logs/logs.module";
     ]),
     AccountModule,
     LogsModule,
+    PremiumModule,
   ],
 })
 export class TripNotifyModule {}

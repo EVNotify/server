@@ -12,9 +12,12 @@ import { HISTORY_TYPE } from "src/logs/entities/history-type.entity";
 import { LogDto } from "src/logs/dto/log.dto";
 import { STATUS } from "src/logs/entities/status.entity";
 import { LogWithHistoryDto } from "./dto/log-with-history.dto";
+import { Premium } from "src/premium/decorators/premium.decorator";
+import { PremiumGuard } from "src/premium/premium.guard";
 
 @Controller('trips')
 @UseGuards(AuthGuard)
+@UseGuards(PremiumGuard)
 @ApiTags('TripNotify')
 export class TripNotifyController {
   constructor(
@@ -39,6 +42,7 @@ export class TripNotifyController {
   }
 
   @Post(':akey')
+  @Premium()
   async createTrip(
     @Param('akey') akey: string,
     @Body() createTripDto: CreateTripDto,

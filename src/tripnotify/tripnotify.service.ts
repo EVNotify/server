@@ -7,11 +7,14 @@ import { CreateTripDto } from "./dto/create-trip.dto";
 import { randomBytes } from "crypto";
 import { TripCreationException } from "./exceptions/trip-creation.exception";
 import { TripNotStartedException } from "./exceptions/trip-not-started.exception";
+import { PremiumService } from "src/premium/premium.service";
+import { TripMissingPremiumException } from "./exceptions/trip-missing-premium.exception";
 
 @Injectable()
 export class TripNotifyService {
   constructor(
     @InjectModel(Trip.name) private tripModel: Model<Trip>,
+    private premiumService: PremiumService,
   ) { }
 
   async findAccessibleByCode(code: string): Promise<Trip> {
@@ -38,6 +41,12 @@ export class TripNotifyService {
       throw new TripNotStartedException(trip.startDate);
     }
 
+    const hasPremium = (await this.premiumService.getExpiryDate(trip.akey)) !== null;
+
+    if (!hasPremium) {
+      throw new TripMissingPremiumException();
+    }
+
     return trip;
   }
 
@@ -51,7 +60,7 @@ export class TripNotifyService {
     }
 
     if (start >= end) {
-      throw new TripCreationException('Start must be greater than end date');
+      throw new TripCreationException('End must be greater than start date');
     }
 
     const diffMs = end.getTime() - start.getTime();
