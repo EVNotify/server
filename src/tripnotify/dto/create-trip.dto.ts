@@ -1,7 +1,11 @@
-import { IsBoolean, IsDateString, IsEnum } from "class-validator";
+import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString } from "class-validator";
 import { TripType } from "../entitites/trip-type.entity";
 
 export class CreateTripDto {
+  @IsString()
+  @IsOptional()
+  name?: string;
+
   @IsDateString()
   startDate: string;
 

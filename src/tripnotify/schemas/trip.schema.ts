@@ -9,6 +9,9 @@ export type TripDocument = Trip & Document;
 
 @Schema({ timestamps: true })
 export class Trip {
+  @Prop()
+   name?: string;
+
   @Prop({
     required: true,
     unique: true,

@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, InternalServerErrorException, NotFoundException, Param, Post, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, Controller, ForbiddenException, Get, InternalServerErrorException, NotFoundException, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { TripNotifyService } from "./tripnotify.service";
 import { TripDto } from "./dto/trip.dto";
@@ -9,11 +9,13 @@ import { TripNotExistsException } from "./exceptions/trip-not-exists.exception";
 import { TripCreationException } from "./exceptions/trip-creation.exception";
 import { LogsService } from "src/logs/logs.service";
 import { HISTORY_TYPE } from "src/logs/entities/history-type.entity";
-import { LogDto } from "src/logs/dto/log.dto";
 import { STATUS } from "src/logs/entities/status.entity";
 import { LogWithHistoryDto } from "./dto/log-with-history.dto";
 import { Premium } from "src/premium/decorators/premium.decorator";
 import { PremiumGuard } from "src/premium/premium.guard";
+import { TripNotStartedException } from "./exceptions/trip-not-started.exception";
+import { TripMissingPremiumException } from "./exceptions/trip-missing-premium.exception";
+import { TripInformationDto } from "./dto/trip-information.dto";
 
 @Controller('trips')
 @UseGuards(AuthGuard)
@@ -35,6 +37,8 @@ export class TripNotifyController {
     } catch (error) {
       if (error instanceof TripNotExistsException) {
         throw new NotFoundException(error.message);
+      } else if (error instanceof TripNotStartedException || error instanceof TripMissingPremiumException) {
+        throw new ForbiddenException(error.message);
       }
 
       throw new InternalServerErrorException();
@@ -62,7 +66,7 @@ export class TripNotifyController {
   @Guest()
   async tripInformation(
     @Param('code') code: string,
-  ): Promise<LogDto[]> {
+  ): Promise<TripInformationDto> {
     try {
       const trip = await this.tripNotifyService.findAccessibleByCode(code);
 
@@ -76,11 +80,12 @@ export class TripNotifyController {
         }
       }
 
-
-      return logs.map((log) => new LogWithHistoryDto(log));
+      return new TripInformationDto(logs.map((log) => new LogWithHistoryDto(log)));
     } catch (error) {
       if (error instanceof TripNotExistsException) {
         throw new NotFoundException(error.message);
+      } else if (error instanceof TripNotStartedException || error instanceof TripMissingPremiumException) {
+        throw new ForbiddenException(error.message);
       }
 
       throw new InternalServerErrorException();

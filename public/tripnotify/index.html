@@ -119,7 +119,21 @@
         })
         .then((data) => {
           hideError();
-          updateSidebar(data);
+          updateSidebarBasicInfo(data);
+
+          return fetch(`/trips/${code}/info`)
+            .then((res) => {
+              if (!res.ok) {
+                throw new Error();
+              }
+
+              return res.json();
+            })
+        })
+        .then((data) => {
+          console.log(data);
+          hideError();
+          updateSidebarMetadataAndChargingStops(data);
         })
         .catch((err) => {
           showError("Trip could not be loaded");
@@ -134,26 +148,27 @@
         polyline.addLatLng([lat, lng]);
         marker.setLatLng([lat, lng]);
         map.panTo([lat, lng]);
-
-        updateSidebar(data.info);
       });
     }
 
-    function updateSidebar(info) {
+    function updateSidebarBasicInfo(info) {
       nameEl.textContent = info.name || "–";
-      startEl.textContent = info.start || "–";
-      endEl.textContent = info.end || "–";
-      consumedEl.textContent = info.consumedEnergy || "–";
-      chargedEl.textContent = info.chargedEnergy || "–";
-      avgSpeedEl.textContent = info.avgSpeed ? info.avgSpeed + " km/h" : "–";
-      avgChargeEl.textContent = info.avgCharge ? info.avgCharge + " kW" : "–";
+      startEl.textContent = info.start ? new Date(info.start).toLocaleString() : "–";
+      endEl.textContent = info.end ? new Date(info.end).toLocaleString() : "–";
+    }
+
+    function updateSidebarMetadataAndChargingStops(info) {
+      consumedEl.textContent = info.metadata.consumedEnergy || "–";
+      chargedEl.textContent = info.metadata.chargedEnergy || "–";
+      avgSpeedEl.textContent = info.metadata.avgSpeed ? info.metadata.avgSpeed + " km/h" : "–";
+      avgChargeEl.textContent = info.metadata.avgCharge ? info.metadata.avgCharge + " kW" : "–";
 
       stopsEl.innerHTML = '';
-      (info.chargingStops || []).forEach(stop => {
+      (info.logs || []).filter((log) => log.type === 'charge').forEach(((log) => {
         const li = document.createElement("li");
-        li.textContent = `${stop.time} – ${stop.location}`;
+        li.textContent = `${new Date(log.startDate).toLocaleString()} – ${new Date(log.endDate).toLocaleString()} (charged: ${log.rechargedKWh || 0}kWh, ⌀ ${log.averageKW || 0}kW)`;
         stopsEl.appendChild(li);
-      });
+      }));
     }
   </script>
 </body>
