@@ -158,15 +158,15 @@
     }
 
     function updateSidebarMetadataAndChargingStops(info) {
-      consumedEl.textContent = info.metadata.consumedEnergy || "–";
-      chargedEl.textContent = info.metadata.chargedEnergy || "–";
-      avgSpeedEl.textContent = info.metadata.avgSpeed ? info.metadata.avgSpeed + " km/h" : "–";
-      avgChargeEl.textContent = info.metadata.avgCharge ? info.metadata.avgCharge + " kW" : "–";
+      consumedEl.textContent = info.metadata.consumedEnergy ? info.metadata.consumedEnergy + ' kWh' : "–";
+      chargedEl.textContent = info.metadata.rechargedEnergy ? info.metadata.rechargedEnergy + ' kWh' : "–";
+      avgSpeedEl.textContent = info.metadata.avgDriveSpeed ? info.metadata.avgDriveSpeed + " km/h" : "–";
+      avgChargeEl.textContent = info.metadata.avgChargeSpeed ? info.metadata.avgChargeSpeed + " kW" : "–";
 
       stopsEl.innerHTML = '';
       (info.logs || []).filter((log) => log.type === 'charge').forEach(((log) => {
         const li = document.createElement("li");
-        li.textContent = `${new Date(log.startDate).toLocaleString()} – ${new Date(log.endDate).toLocaleString()} (charged: ${log.rechargedKWh || 0}kWh, ⌀ ${log.averageKW || 0}kW)`;
+        li.textContent = `${new Date(log.startDate).toLocaleString()} – ${new Date(log.endDate).toLocaleString()} (charged: ${(log.rechargedKWh || 0).toFixed(2)} kWh, ⌀ ${(log.averageKW || 0).toFixed(2)} kW)`;
         stopsEl.appendChild(li);
       }));
     }

@@ -2,20 +2,20 @@ export class TripMetadataDto {
   constructor(
     consumedEnergy: number,
     rechargedEnergy: number,
-    driveSpeed: number,
-    chargeSpeed: number,
+    avgDriveSpeed: number,
+    avgChargeSpeed: number,
   ) {
     this.consumedEnergy = consumedEnergy;
     this.rechargedEnergy = rechargedEnergy;
-    this.driveSpeed = driveSpeed;
-    this.chargeSpeed = chargeSpeed;
+    this.avgDriveSpeed = avgDriveSpeed;
+    this.avgChargeSpeed = avgChargeSpeed;
   }
 
   consumedEnergy: number;
 
   rechargedEnergy: number;
 
-  driveSpeed: number;
+  avgDriveSpeed: number;
 
-  chargeSpeed: number;
+  avgChargeSpeed: number;
 }
