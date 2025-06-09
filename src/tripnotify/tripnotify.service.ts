@@ -78,4 +78,18 @@ export class TripNotifyService {
 
     return await (new this.tripModel(data)).save();
   }
+
+  async findActives(akey: string): Promise<Trip[]> {
+    const now = new Date();
+
+    return this.tripModel.find({
+      akey,
+      startDate: {
+        $lte: now,
+      },
+      endDate: {
+        $gte: now,
+      }
+    }).exec();
+  }
 }

@@ -111,7 +111,10 @@
 
     const map = L.map('map').setView([51.505, -0.09], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-  
+
+    let liveDataPolyline = L.polyline([], { color: 'blue' }).addTo(map);
+    let liveDataMarker = L.marker([0, 0]);
+
     if (!code) {
       showError("❗ No code in URL provided. Example: ?code=abc123");
     } else {
@@ -149,11 +152,19 @@
         query: { code }
       });
 
-      socket.on('route-update', (data) => {
-        // const [lat, lng] = data.coords;
-        // polyline.addLatLng([lat, lng]);
-        // marker.setLatLng([lat, lng]);
-        // map.panTo([lat, lng]);
+      socket.on(`route-update:${code}`, (payload) => {
+        console.log(payload);
+        const lat = payload.data.latitude;
+        const lng = payload.data.longitude;
+
+        if (lat && lng) {
+          liveDataPolyline.addLatLng([lat, lng]);
+          liveDataMarker.setLatLng([lat, lng]);
+          if (!map.hasLayer(liveDataMarker)) {
+            liveDataMarker.addTo(map);
+          }
+          map.panTo([lat, lng]);
+        }
       });
     }
 
@@ -173,7 +184,8 @@
       (info.logs || []).forEach(((log) => {
         if (log.type === 'charge') {
           const li = document.createElement("li");
-          const text = `${new Date(log.startDate).toLocaleDateString()}<br> ${new Date(log.startDate).toLocaleTimeString()} - ${new Date(log.endDate).toLocaleTimeString()} <br> (charged: ${(log.rechargedKWh || 0).toFixed(2)} kWh, ⌀ ${Math.abs(log.averageKW || 0).toFixed(2)} kW)`;
+          
+          const text = `${new Date(log.startDate).toLocaleDateString()}<br> ${new Date(log.startDate).toLocaleTimeString()} ${log.endDate ? '- ' + new Date(log.endDate).toLocaleTimeString() : ' (still active)'} <br> (charged: ${(log.rechargedKWh || 0).toFixed(2)} kWh, ⌀ ${Math.abs(log.averageKW || 0).toFixed(2)} kW)`;
 
           li.innerHTML = text;
           stopsEl.appendChild(li);
@@ -194,7 +206,7 @@
           });
         } else {
           const coordinates = log.history.map((history) => {
-            if(history.latitude && history.longitude) {
+            if (history.latitude && history.longitude) {
               return [history.latitude, history.longitude];
             }
 
