@@ -111,9 +111,7 @@
 
     const map = L.map('map').setView([51.505, -0.09], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    let polyline = L.polyline([], { color: 'blue' }).addTo(map);
-    let marker = L.marker([0, 0]).addTo(map);
-
+  
     if (!code) {
       showError("❗ No code in URL provided. Example: ?code=abc123");
     } else {
@@ -172,27 +170,39 @@
       avgChargeEl.textContent = info.metadata.avgChargeSpeed ? info.metadata.avgChargeSpeed + " kW" : "–";
 
       stopsEl.innerHTML = '';
-      (info.logs || []).filter((log) => log.type === 'charge').forEach(((log) => {
-        const li = document.createElement("li");
-        const text = `${new Date(log.startDate).toLocaleDateString()}<br> ${new Date(log.startDate).toLocaleTimeString()} - ${new Date(log.endDate).toLocaleTimeString()} <br> (charged: ${(log.rechargedKWh || 0).toFixed(2)} kWh, ⌀ ${Math.abs(log.averageKW || 0).toFixed(2)} kW)`;
+      (info.logs || []).forEach(((log) => {
+        if (log.type === 'charge') {
+          const li = document.createElement("li");
+          const text = `${new Date(log.startDate).toLocaleDateString()}<br> ${new Date(log.startDate).toLocaleTimeString()} - ${new Date(log.endDate).toLocaleTimeString()} <br> (charged: ${(log.rechargedKWh || 0).toFixed(2)} kWh, ⌀ ${Math.abs(log.averageKW || 0).toFixed(2)} kW)`;
 
-        li.innerHTML = text;
-        stopsEl.appendChild(li);
+          li.innerHTML = text;
+          stopsEl.appendChild(li);
 
-        log.history.some((history) => {
-          if (history.latitude && history.longitude) {
-            const marker = L.marker([history.latitude, history.longitude]).addTo(map);
+          log.history.some((history) => {
+            if (history.latitude && history.longitude) {
+              const marker = L.marker([history.latitude, history.longitude]).addTo(map);
 
-            marker._icon.style.filter = 'hue-rotate(260deg)';
-            marker.bindPopup(text);
+              marker._icon.style.filter = 'hue-rotate(260deg)';
+              marker.bindPopup(text);
 
-            li.onclick = () => {
-              map.panTo([history.latitude, history.longitude]);
-            };
-            
-            return true;
-          }
-        });
+              li.onclick = () => {
+                map.panTo([history.latitude, history.longitude]);
+              };
+
+              return true;
+            }
+          });
+        } else {
+          const coordinates = log.history.map((history) => {
+            if(history.latitude && history.longitude) {
+              return [history.latitude, history.longitude];
+            }
+
+            return null;
+          }).filter((coordinates) => coordinates);
+
+          L.polyline(coordinates, { color: 'blue' }).addTo(map);
+        }
       }));
     }
   </script>
