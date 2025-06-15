@@ -19,5 +19,6 @@ import { CronHandler } from './handler/cron';
       { name: LastSync.name, schema: LastSyncSchema },
     ]),
   ],
+  exports: [LogsService],
 })
 export class LogsModule {}

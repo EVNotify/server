@@ -119,8 +119,8 @@ export class Log {
   })
   dischargedKWh: number;
 
-  @Prop()
-  history: [Sync];
+  @Prop({ type: [Sync] })
+  history: Sync[];
 
   @Prop()
   thresholdReached: Date;

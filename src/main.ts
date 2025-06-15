@@ -1,5 +1,5 @@
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
@@ -13,13 +13,12 @@ async function bootstrap() {
     }),
   );
 
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
   const config = new DocumentBuilder()
     .setTitle('EVNotify API')
     .setDescription('Documentation for EVNotify API')
     .setVersion('3.0')
-    .addTag('Account')
-    .addTag('Settings')
-    .addTag('Logs & Sync')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);

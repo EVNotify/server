@@ -90,6 +90,23 @@ export class LogsService {
     return Promise.resolve(new LogDto(log));
   }
 
+  async findLogsWithinDateRange(akey: string, start: Date, end: Date): Promise<Log[]> {
+    const query = {
+      akey,
+      startDate: { $gte: start },
+      $and: [
+        {
+          $or: [
+            { endDate: { $lte: end } },
+            { endDate: null, status: STATUS.RUNNING },
+          ]
+        }
+      ]
+    };
+
+    return this.logModel.find(query).select('-history').sort({startDate: 'desc'});
+  }
+
   async findAll(akey: string, type?: TYPE): Promise<LogDto[]> {
     const logs = this.logModel
       .find({ akey })

@@ -1,0 +1,223 @@
+<!-- TODO: use local assets instead of CDN in production -->
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>TripNotify</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body,
+    html {
+      margin: 0;
+      height: 100%;
+      font-family: sans-serif;
+    }
+
+    #app {
+      display: flex;
+      height: 100%;
+    }
+
+    #map {
+      flex: 1;
+    }
+
+    #sidebar {
+      width: 300px;
+      padding: 1rem;
+      background: #f4f4f4;
+      overflow-y: auto;
+      border-left: 1px solid #ccc;
+    }
+
+    .info-group {
+      margin-bottom: 1rem;
+    }
+
+    .timeline li {
+      margin-bottom: 1rem;
+    }
+
+    .timeline li:hover {
+      cursor: pointer;
+    }
+
+    .timeline li::before {
+      content: "⚡";
+      margin-right: 0.5rem;
+    }
+
+    #error {
+      border-radius: 5px;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    #error.error {
+      background-color: #ffe5e5;
+      color: #a00;
+      border: 1px solid #a00;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div id="map"></div>
+    <div id="sidebar">
+      <h2>Trip information</h2>
+      <div id="error" class="error"></div>
+      <div id="info">
+        <div class="info-group"><strong>Name:</strong> <span id="name">–</span></div>
+        <div class="info-group"><strong>Start:</strong> <span id="start">–</span></div>
+        <div class="info-group"><strong>End:</strong> <span id="end">–</span></div>
+        <div class="info-group"><strong>Consumed energy:</strong> <span id="consumedEnergy">–</span></div>
+        <div class="info-group"><strong>(Re-)Charged energy:</strong> <span id="chargedEnergy">–</span></div>
+        <div class="info-group"><strong>Ø drive speed:</strong> <span id="avgSpeed">–</span></div>
+        <div class="info-group"><strong>Ø charge speed:</strong> <span id="avgCharge">–</span></div>
+        <div class="info-group"><strong>Charge stops:</strong></div>
+      </div>
+      <ul id="chargingStops" class="timeline"></ul>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+
+    const nameEl = document.getElementById("name");
+    const startEl = document.getElementById("start");
+    const endEl = document.getElementById("end");
+    const consumedEl = document.getElementById("consumedEnergy");
+    const chargedEl = document.getElementById("chargedEnergy");
+    const avgSpeedEl = document.getElementById("avgSpeed");
+    const avgChargeEl = document.getElementById("avgCharge");
+    const stopsEl = document.getElementById("chargingStops");
+    const errorEl = document.getElementById("error");
+    const infoEl = document.getElementById("info");
+
+    function showError(message) {
+      errorEl.style.display = 'block';
+      errorEl.textContent = message;
+    }
+
+    function hideError() {
+      errorEl.style.display = 'none';
+    }
+
+    const map = L.map('map').setView([51.505, -0.09], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    let liveDataPolyline = L.polyline([], { color: 'blue' }).addTo(map);
+    let liveDataMarker = L.marker([0, 0]);
+
+    if (!code) {
+      showError("❗ No code in URL provided. Example: ?code=abc123");
+    } else {
+      fetch(`/trips/${code}`)
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error();
+          }
+
+          return res.json();
+        })
+        .then((data) => {
+          hideError();
+          updateSidebarBasicInfo(data);
+
+          return fetch(`/trips/${code}/info`)
+            .then((res) => {
+              if (!res.ok) {
+                throw new Error();
+              }
+
+              return res.json();
+            })
+        })
+        .then((data) => {
+          console.log(data);
+          hideError();
+          updateSidebarMetadataAndChargingStops(data);
+        })
+        .catch((err) => {
+          showError("Trip could not be loaded");
+        });
+
+      const socket = io({
+        query: { code }
+      });
+
+      socket.on(`route-update:${code}`, (payload) => {
+        console.log(payload);
+        const lat = payload.data.latitude;
+        const lng = payload.data.longitude;
+
+        if (lat && lng) {
+          liveDataPolyline.addLatLng([lat, lng]);
+          liveDataMarker.setLatLng([lat, lng]);
+          if (!map.hasLayer(liveDataMarker)) {
+            liveDataMarker.addTo(map);
+          }
+          map.panTo([lat, lng]);
+        }
+      });
+    }
+
+    function updateSidebarBasicInfo(info) {
+      nameEl.textContent = info.name || "–";
+      startEl.textContent = info.start ? new Date(info.start).toLocaleString() : "–";
+      endEl.textContent = info.end ? new Date(info.end).toLocaleString() : "–";
+    }
+
+    function updateSidebarMetadataAndChargingStops(info) {
+      consumedEl.textContent = info.metadata.consumedEnergy ? info.metadata.consumedEnergy + ' kWh' : "–";
+      chargedEl.textContent = info.metadata.rechargedEnergy ? info.metadata.rechargedEnergy + ' kWh' : "–";
+      avgSpeedEl.textContent = info.metadata.avgDriveSpeed ? info.metadata.avgDriveSpeed + " km/h" : "–";
+      avgChargeEl.textContent = info.metadata.avgChargeSpeed ? info.metadata.avgChargeSpeed + " kW" : "–";
+
+      stopsEl.innerHTML = '';
+      (info.logs || []).forEach(((log) => {
+        if (log.type === 'charge') {
+          const li = document.createElement("li");
+          
+          const text = `${new Date(log.startDate).toLocaleDateString()}<br> ${new Date(log.startDate).toLocaleTimeString()} ${log.endDate ? '- ' + new Date(log.endDate).toLocaleTimeString() : ' (still active)'} <br> (charged: ${(log.rechargedKWh || 0).toFixed(2)} kWh, ⌀ ${Math.abs(log.averageKW || 0).toFixed(2)} kW)`;
+
+          li.innerHTML = text;
+          stopsEl.appendChild(li);
+
+          log.history.some((history) => {
+            if (history.latitude && history.longitude) {
+              const marker = L.marker([history.latitude, history.longitude]).addTo(map);
+
+              marker._icon.style.filter = 'hue-rotate(260deg)';
+              marker.bindPopup(text);
+
+              li.onclick = () => {
+                map.panTo([history.latitude, history.longitude]);
+              };
+
+              return true;
+            }
+          });
+        } else {
+          const coordinates = log.history.map((history) => {
+            if (history.latitude && history.longitude) {
+              return [history.latitude, history.longitude];
+            }
+
+            return null;
+          }).filter((coordinates) => coordinates);
+
+          L.polyline(coordinates, { color: 'blue' }).addTo(map);
+        }
+      }));
+    }
+  </script>
+</body>
+
+</html>
