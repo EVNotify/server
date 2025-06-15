@@ -148,7 +148,7 @@
           showError("Trip could not be loaded");
         });
 
-      const socket = io("http://localhost:3000", {
+      const socket = io({
         query: { code }
       });
 
