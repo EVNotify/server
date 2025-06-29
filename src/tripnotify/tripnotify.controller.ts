@@ -27,6 +27,17 @@ export class TripNotifyController {
     private readonly tripNotifyService: TripNotifyService,
   ) {}
 
+  @Get(':akey/list') 
+  async getActiveTripsByAKey(
+    @Param('akey') akey: string,
+  ): Promise<TripDto[]> {
+    try {
+      return (await this.tripNotifyService.findAccessibleByAkey(akey)).map((trip) => new TripDto(trip));
+    } catch(_) {
+      throw new InternalServerErrorException();
+    }
+  }
+
   @Get(':code')
   @Guest()
   async getActiveTripByCode(

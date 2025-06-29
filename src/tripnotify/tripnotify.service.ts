@@ -17,6 +17,23 @@ export class TripNotifyService {
     private premiumService: PremiumService,
   ) { }
 
+  async findAccessibleByAkey(akey: string): Promise<Trip[]> {
+    return await this.tripModel.find({
+      $and: [
+        { akey },
+        {
+          $or: [
+            { accessibleAfterEnd: true },
+            {
+              accessibleAfterEnd: false,
+              endDate: { $lte: new Date() },
+            },
+          ],
+        },
+      ],
+    });
+  }
+
   async findAccessibleByCode(code: string): Promise<Trip> {
     const trip = await this.tripModel.findOne({
       $and: [
