@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, InternalServerErrorException, NotFoundException, Param, Post, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, InternalServerErrorException, NotFoundException, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { TripNotifyService } from "./tripnotify.service";
 import { TripDto } from "./dto/trip.dto";
@@ -97,6 +97,22 @@ export class TripNotifyController {
         throw new NotFoundException(error.message);
       } else if (error instanceof TripNotStartedException || error instanceof TripMissingPremiumException) {
         throw new ForbiddenException(error.message);
+      }
+
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @Delete(':akey/:code')
+  async deleteTrip(
+    @Param('akey') akey: string,
+    @Param('code') code: string,
+  ) {
+    try {
+      return await this.tripNotifyService.deleteTrip(akey, code);
+    } catch(error) {
+      if (error instanceof TripNotExistsException) {
+        throw new NotFoundException(error.message);
       }
 
       throw new InternalServerErrorException();

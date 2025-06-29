@@ -109,4 +109,14 @@ export class TripNotifyService {
       }
     }).exec();
   }
+
+  async deleteTrip(akey: string, code: string): Promise<void> {
+    const trip = await this.tripModel.findOne({ akey, code });
+
+    if (!trip) {
+      throw new TripNotExistsException();
+    }
+
+    await trip.deleteOne();
+  }
 }
