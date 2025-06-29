@@ -118,7 +118,9 @@
     if (!code) {
       showError("❗ No code in URL provided. Example: ?code=abc123");
     } else {
-      fetch(`/trips/${code}`)
+      const baseUrl = document.location.protocol === 'https:' ? 'https://api.evnotify.de' : '';
+
+      fetch(`${baseUrl}/trips/${code}`)
         .then((res) => {
           if (!res.ok) {
             throw new Error();
@@ -130,7 +132,7 @@
           hideError();
           updateSidebarBasicInfo(data);
 
-          return fetch(`/trips/${code}/info`)
+          return fetch(`${baseUrl}/trips/${code}/info`)
             .then((res) => {
               if (!res.ok) {
                 throw new Error();
@@ -140,7 +142,6 @@
             })
         })
         .then((data) => {
-          console.log(data);
           hideError();
           updateSidebarMetadataAndChargingStops(data);
         })
@@ -153,7 +154,6 @@
       });
 
       socket.on(`route-update:${code}`, (payload) => {
-        console.log(payload);
         const lat = payload.data.latitude;
         const lng = payload.data.longitude;
 
