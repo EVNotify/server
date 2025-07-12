@@ -12,6 +12,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { TripNotifyModule } from './tripnotify/tripnotify.module';
+import { StationsModule } from './stations/stations.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { TripNotifyModule } from './tripnotify/tripnotify.module';
     PremiumModule,
     NotificationsModule,
     TripNotifyModule,
+    StationsModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
       serveRoot: '/frontend',
