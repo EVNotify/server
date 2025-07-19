@@ -17,7 +17,7 @@ export class StationsService {
 
   private baseUrl = 'https://api.openchargemap.io/v3';
 
-  private async findAndUpdateStationsViaRequest(dto: ListStationsDto) {
+  private async findAndUpdateStationsViaRequest(dto: ListStationsDto): Promise<Station[]> {
     const { data } = await firstValueFrom(
       this.httpService.get(
         `${this.baseUrl}/poi?compact=true&verbose=false&opendata=true&countryCode=de&distance=20&distanceunit=km&latitude=${dto.latitude}&longitude=${dto.longitude}`
@@ -29,19 +29,35 @@ export class StationsService {
       ),
     );
 
-    // TODO map and store them
-    console.log(data);
-    return data;
+    const stations = data.map((s) => {
+      return new Station({
+        ID: s.ID,
+        UUID: s.UUID,
+        AddressInfo: s.AddressInfo,
+        data: (() => {
+          const { ID, UUID, AddressInfo, ...rest } = s;
+          return rest;
+        })(),
+      });
+    });
+
+    await this.stationModel.insertMany(stations);
+
+    return stations;
+  }
+
+  private async findNearbyStationsWithinDatabase(dto: ListStationsDto): Promise<Station[]> {
+    return [];
   }
 
   async findNearby(dto: ListStationsDto) {
-    // first check whether there are already results nearby
-    // if so, return them,
-    // if not, query api, return
+    let stations = await this.findNearbyStationsWithinDatabase(dto);
 
-    let stations = [];
-
-    stations = await this.findAndUpdateStationsViaRequest(dto);
+    // TODO filter by distance, optional calculate distance
+    // TODO refresh handling
+    if (!stations.length) {
+      stations = await this.findAndUpdateStationsViaRequest(dto);
+    }
 
     return stations;
   }

@@ -6,6 +6,18 @@ export type StationDocument = Station & Document;
 
 @Schema({ strict: false })
 export class Station {
+  constructor(partial?: Partial<Station>) {
+    if (!partial) {
+      return;
+    }
+
+    Object.assign(this, partial);
+
+    if (partial.AddressInfo) {
+      this.AddressInfo = new AddressInfo(partial.AddressInfo.Latitude, partial.AddressInfo.Longitude);
+    }
+  }
+
   @Prop({ required: true, unique: true })
   ID: string;
 
