@@ -47,6 +47,8 @@ export class StationsService {
   }
 
   private async findNearbyStationsWithinDatabase(dto: ListStationsDto): Promise<Station[]> {
+    await this.stationModel.ensureIndexes();
+    
     const results = await this.stationModel.aggregate([
       {
         $geoNear: {
