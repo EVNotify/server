@@ -17,13 +17,13 @@ export class AddressInfo {
   Longitude: number;
 
   @Prop()
-  Title: string;
+  Title?: string;
   @Prop()
-  Postcode: string;
+  Postcode?: string;
 
   @Prop()
-  Town: string;
+  Town?: string;
 
   @Prop()
-  AddressLine1: string;
+  AddressLine1?: string;
 }
