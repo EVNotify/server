@@ -2,7 +2,7 @@ import { Controller, Get, InternalServerErrorException, Param, Query, UseGuards 
 import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/account/account.guard";
 import { StationsService } from "./stations.service";
-import { ListStationsDto } from "./dto/list-stations.dto";
+import { ListStationsFilterDto } from "./dto/list-stations.dto";
 
 @Controller('stations')
 @UseGuards(AuthGuard)
@@ -15,7 +15,7 @@ export class StationsController {
   @Get(':akey')
   async list(
     @Param('akey') akey: string,
-    @Query() dto: ListStationsDto,
+    @Query() dto: ListStationsFilterDto,
   ) {
     try {
       return await this.stationsService.findNearby(dto);

@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Station } from "./schemas/station.schema";
 import { Model } from "mongoose";
-import { ListStationsDto } from "./dto/list-stations.dto";
+import { ListStationsFilterDto } from "./dto/list-stations.dto";
 import { HttpService } from "@nestjs/axios";
 import { catchError, firstValueFrom } from "rxjs";
 import { AxiosError } from "axios";
@@ -17,7 +17,7 @@ export class StationsService {
 
   private baseUrl = 'https://api.openchargemap.io/v3';
 
-  private async findAndUpdateStationsViaRequest(dto: ListStationsDto): Promise<Station[]> {
+  private async findAndUpdateStationsViaRequest(dto: ListStationsFilterDto): Promise<Station[]> {
     const { data } = await firstValueFrom(
       this.httpService.get(
         `${this.baseUrl}/poi?compact=true&verbose=false&opendata=true&countryCode=de&distance=20&distanceunit=km&latitude=${dto.latitude}&longitude=${dto.longitude}`
@@ -46,9 +46,9 @@ export class StationsService {
     return stations;
   }
 
-  private async findNearbyStationsWithinDatabase(dto: ListStationsDto): Promise<Station[]> {
+  private async findNearbyStationsWithinDatabase(dto: ListStationsFilterDto): Promise<Station[]> {
     await this.stationModel.ensureIndexes();
-    
+
     const results = await this.stationModel.aggregate([
       {
         $geoNear: {
@@ -70,7 +70,7 @@ export class StationsService {
     return results;
   }
 
-  async findNearby(dto: ListStationsDto) {
+  async findNearby(dto: ListStationsFilterDto) {
     let stations = await this.findNearbyStationsWithinDatabase(dto);
 
     // TODO refresh handling
