@@ -14,7 +14,7 @@ export class Station {
     Object.assign(this, partial);
 
     if (partial.AddressInfo) {
-      this.AddressInfo = new AddressInfo(partial.AddressInfo.Latitude, partial.AddressInfo.Longitude);
+      this.AddressInfo = new AddressInfo(partial.AddressInfo);
       this.location = {
         type: 'Point',
         coordinates: [partial.AddressInfo.Longitude, partial.AddressInfo.Latitude],

@@ -2,9 +2,12 @@ import { Prop, Schema } from '@nestjs/mongoose';
 
 @Schema()
 export class AddressInfo {
-  constructor(latitude?: number, longitude?: number) {
-    this.Latitude = latitude;
-    this.Longitude = longitude;
+  constructor(partial?: Partial<AddressInfo>) {
+    if (!partial) {
+      return;
+    }
+
+    Object.assign(this, partial);
   }
 
   @Prop({ required: true })
@@ -12,4 +15,15 @@ export class AddressInfo {
 
   @Prop({ required: true })
   Longitude: number;
+
+  @Prop()
+  Title: string;
+  @Prop()
+  Postcode: string;
+
+  @Prop()
+  Town: string;
+
+  @Prop()
+  AddressLine1: string;
 }
