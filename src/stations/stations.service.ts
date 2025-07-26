@@ -7,6 +7,7 @@ import { HttpService } from "@nestjs/axios";
 import { catchError, firstValueFrom } from "rxjs";
 import { AxiosError } from "axios";
 import { OCMRequestFailedException } from "./exceptions/ocm-request-failed.exception";
+import { StationDto } from "./dto/station.dto";
 
 @Injectable()
 export class StationsService {
@@ -70,7 +71,7 @@ export class StationsService {
     return results;
   }
 
-  async findNearby(dto: ListStationsFilterDto) {
+  async findNearby(dto: ListStationsFilterDto): Promise<StationDto[]> {
     let stations = await this.findNearbyStationsWithinDatabase(dto);
 
     // TODO refresh handling
@@ -78,6 +79,6 @@ export class StationsService {
       stations = await this.findAndUpdateStationsViaRequest(dto);
     }
 
-    return stations;
+    return stations.map((station) => new StationDto(station));
   }
 }
