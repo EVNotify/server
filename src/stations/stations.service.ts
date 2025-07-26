@@ -47,13 +47,30 @@ export class StationsService {
   }
 
   private async findNearbyStationsWithinDatabase(dto: ListStationsDto): Promise<Station[]> {
-    return [];
+    const results = await this.stationModel.aggregate([
+      {
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: [dto.longitude, dto.latitude],
+          },
+          distanceField: 'distance',
+          spherical: true,
+          maxDistance: 10 * 1000,
+          key: 'location',
+        },
+      },
+      {
+        $sort: { distance: 1 },
+      },
+    ]);
+
+    return results;
   }
 
   async findNearby(dto: ListStationsDto) {
     let stations = await this.findNearbyStationsWithinDatabase(dto);
 
-    // TODO filter by distance, optional calculate distance
     // TODO refresh handling
     if (!stations.length) {
       stations = await this.findAndUpdateStationsViaRequest(dto);
