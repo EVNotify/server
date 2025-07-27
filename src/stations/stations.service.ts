@@ -8,6 +8,10 @@ import { catchError, firstValueFrom } from "rxjs";
 import { AxiosError } from "axios";
 import { OCMRequestFailedException } from "./exceptions/ocm-request-failed.exception";
 import { StationDto } from "./dto/station.dto";
+import { RouteQueryDto } from "./dto/route-query.dto";
+import { RouteDto } from "./dto/route.dto";
+import { buffer, distance, lineString, point, pointToLineDistance } from "@turf/turf";
+import { RouteStationDto } from "./dto/route-station.dto";
 
 @Injectable()
 export class StationsService {
@@ -80,5 +84,33 @@ export class StationsService {
     }
 
     return stations.map((station) => new StationDto(station));
+  }
+
+  async planRoute(dto: RouteQueryDto): Promise<RouteDto> {
+    // TODO load and store from api request first, but ensure rate limit is there
+    const start = [dto.startLongitude, dto.startLatitude];
+    const end = [dto.endLongitude, dto.endLatitude];
+    const path = lineString([start, end]);
+    const corridor = buffer(path, 5);
+
+    const stations = await this.stationModel.find({
+      location: {
+        $geoWithin: {
+          $geometry: corridor.geometry,
+        },
+      },
+    });
+
+    const routeStations = stations
+      .map((station) => {
+        const stationPoint = point(station.location.coordinates);
+        const routeDistance = pointToLineDistance(stationPoint, path);
+        const startDistance = distance(start, stationPoint);
+
+        return new RouteStationDto(station, routeDistance, startDistance);
+      })
+      .sort((a, b) => a.distanceToRouteKm - b.distanceToRouteKm);
+
+    return new RouteDto(routeStations);
   }
 }
