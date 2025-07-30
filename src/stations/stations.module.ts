@@ -7,6 +7,7 @@ import { HttpModule } from "@nestjs/axios";
 import { AccountModule } from "src/account/account.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Account, AccountSchema } from "src/account/schemas/account.schema";
+import { PremiumModule } from "src/premium/premium.module";
 
 @Module({
   controllers: [StationsController],
@@ -31,6 +32,7 @@ import { Account, AccountSchema } from "src/account/schemas/account.schema";
       inject: [ConfigService],
     }),
     AccountModule,
+    PremiumModule,
   ],
 })
 

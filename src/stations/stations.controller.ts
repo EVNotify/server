@@ -1,13 +1,17 @@
-import { Controller, Get, InternalServerErrorException, Param, Query, UseGuards } from "@nestjs/common";
+import { Controller, Get, HttpException, HttpStatus, InternalServerErrorException, Param, Query, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/account/account.guard";
 import { StationsService } from "./stations.service";
 import { ListStationsFilterDto } from "./dto/list-stations.dto";
 import { StationDto } from "./dto/station.dto";
 import { RouteQueryDto } from "./dto/route-query.dto";
+import { PremiumGuard } from "src/premium/premium.guard";
+import { Premium } from "src/premium/decorators/premium.decorator";
+import { RoutePlannedRecentlyException } from "./exceptions/route-planned-recently.exception";
 
 @Controller('stations')
 @UseGuards(AuthGuard)
+@UseGuards(PremiumGuard)
 @ApiTags('Stations')
 export class StationsController {
   constructor(
@@ -27,14 +31,19 @@ export class StationsController {
   }
 
   @Get(':akey/plan-route')
+  @Premium()
   async planRoute(
     @Param('akey') akey: string,
     @Query() dto: RouteQueryDto,
   ) {
     // TODO start + end soc, buffer, detour, charge power
     try {
-      return await this.stationsService.planRoute(dto);
+      return await this.stationsService.planRoute(dto, akey);
     } catch (error) {
+      if (error instanceof RoutePlannedRecentlyException) {
+        throw new HttpException(error.message, HttpStatus.TOO_MANY_REQUESTS);
+      }
+      
       throw new InternalServerErrorException();
     }
   }
