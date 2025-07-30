@@ -12,17 +12,19 @@ import { RouteQueryDto } from "./dto/route-query.dto";
 import { RouteDto } from "./dto/route.dto";
 import { buffer, distance, lineString, point, pointToLineDistance } from "@turf/turf";
 import { RouteStationDto } from "./dto/route-station.dto";
+import { Account } from "src/account/schemas/account.schema";
 
 @Injectable()
 export class StationsService {
   constructor(
     @InjectModel(Station.name) private stationModel: Model<Station>,
+    @InjectModel(Account.name) private accountModel: Model<Account>,
     private readonly httpService: HttpService,
   ) { }
 
   private baseUrl = 'https://api.openchargemap.io/v3';
 
-  private async findAndUpdateStationsViaRequest(dto: ListStationsFilterDto): Promise<Station[]> {
+  private async findAndUpdateStationsViaRequest(dto: ListStationsFilterDto, akey: string): Promise<Station[]> {
     const { data } = await firstValueFrom(
       this.httpService.get(
         `${this.baseUrl}/poi?compact=true&verbose=false&opendata=true&countryCode=de&distance=20&distanceunit=km&latitude=${dto.latitude}&longitude=${dto.longitude}`
@@ -54,6 +56,14 @@ export class StationsService {
       },
     })));
 
+    await this.accountModel.updateOne({
+      akey,
+    }, {
+      $set: {
+        stationsRefreshedAt: new Date(),
+      },
+    })
+
     return stations;
   }
 
@@ -81,12 +91,16 @@ export class StationsService {
     return results;
   }
 
-  async findNearby(dto: ListStationsFilterDto): Promise<StationDto[]> {
+  async findNearby(dto: ListStationsFilterDto, akey: string): Promise<StationDto[]> {
     let stations = await this.findNearbyStationsWithinDatabase(dto);
 
-    // TODO refresh handling
-    if (!stations.length) {
-      stations = await this.findAndUpdateStationsViaRequest(dto);
+    const stationsRefreshedAt = (await this.accountModel.findOne({
+      akey,
+    }).select('stationsRefreshedAt')).stationsRefreshedAt;
+    const refreshedOverADayAgo = Date.now() - stationsRefreshedAt?.getTime() > 24 * 60 * 60 * 1000; 
+
+    if (!stations.length || refreshedOverADayAgo) {
+      stations = await this.findAndUpdateStationsViaRequest(dto, akey);
     }
 
     return stations.map((station) => new StationDto(station));

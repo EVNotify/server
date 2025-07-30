@@ -20,7 +20,7 @@ export class StationsController {
     @Query() dto: ListStationsFilterDto,
   ): Promise<StationDto[]> {
     try {
-      return await this.stationsService.findNearby(dto);
+      return await this.stationsService.findNearby(dto, akey);
     } catch (error) {
       throw new InternalServerErrorException();
     }

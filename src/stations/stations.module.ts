@@ -6,11 +6,15 @@ import { Station, StationSchema } from "./schemas/station.schema";
 import { HttpModule } from "@nestjs/axios";
 import { AccountModule } from "src/account/account.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { Account, AccountSchema } from "src/account/schemas/account.schema";
 
 @Module({
   controllers: [StationsController],
   providers: [StationsService],
   imports: [
+    MongooseModule.forFeature([
+      { name: Account.name, schema: AccountSchema}
+    ]),
     MongooseModule.forFeature([
       { name: Station.name, schema: StationSchema}
     ]),

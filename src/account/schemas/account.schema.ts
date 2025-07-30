@@ -22,6 +22,9 @@ export class Account {
 
   @Prop({ type: Date, default: null })
   premiumUntil?: Date;
+
+  @Prop({ type: Date, default: null })
+  stationsRefreshedAt?: Date;
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);
