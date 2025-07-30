@@ -18,7 +18,7 @@ export class StationsService {
   constructor(
     @InjectModel(Station.name) private stationModel: Model<Station>,
     private readonly httpService: HttpService,
-  ) {}
+  ) { }
 
   private baseUrl = 'https://api.openchargemap.io/v3';
 
@@ -46,7 +46,13 @@ export class StationsService {
       });
     });
 
-    await this.stationModel.insertMany(stations);
+    await this.stationModel.bulkWrite(stations.map((station) => ({
+      updateOne: {
+        filter: { ID: station.ID },
+        update: { $set: station },
+        upsert: true,
+      },
+    })));
 
     return stations;
   }
