@@ -20,6 +20,10 @@ export class Station {
         coordinates: [partial.AddressInfo.Longitude, partial.AddressInfo.Latitude],
       };
     }
+
+    const connections = this.data?.Connections || [];
+
+    this.maxKW = Math.max(...connections.map((connection) => connection.PowerKW || 0)) || 0;
   }
 
   @Prop({ required: true, unique: true })
@@ -46,6 +50,9 @@ export class Station {
     type: 'Point';
     coordinates: [number, number];
   };
+
+  @Prop({required: true })
+  maxKW: number;
 
   @Prop({ type: Object })
   data: any;
