@@ -130,8 +130,11 @@ export class StationsService {
 
   private async findStationsAlongRouteWithinDatabase(polygon: Feature<Polygon | MultiPolygon, {
     [name: string]: any;
-  }>): Promise<Station[]> {
+  }>, minKW: number): Promise<Station[]> {
     return await this.stationModel.find({
+      maxKW: {
+        $gte: minKW,
+      },
       location: {
         $geoWithin: {
           $geometry: polygon.geometry,
@@ -173,7 +176,7 @@ export class StationsService {
 
     await this.findAndUpdateStationsAlongRouteViaRequest(path);
 
-    const stations = await this.findStationsAlongRouteWithinDatabase(corridor);
+    const stations = await this.findStationsAlongRouteWithinDatabase(corridor, dto.minKW);
 
     const routeStations = stations
       .map((station) => {
@@ -183,7 +186,7 @@ export class StationsService {
 
         return new RouteStationDto(station, routeDistance, startDistance);
       })
-      .sort((a, b) => a.distanceToRouteKm - b.distanceToRouteKm);
+      .sort((a, b) => a.distanceToStartKm - b.distanceToStartKm);
 
     await this.accountModel.updateOne({
       akey,

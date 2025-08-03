@@ -36,7 +36,7 @@ export class StationsController {
     @Param('akey') akey: string,
     @Query() dto: RouteQueryDto,
   ) {
-    // TODO start + end soc, buffer, detour, charge power
+    // TODO start + end soc, buffer, detour
     try {
       return await this.stationsService.planRoute(dto, akey);
     } catch (error) {
