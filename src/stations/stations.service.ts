@@ -82,8 +82,15 @@ export class StationsService {
           },
           distanceField: 'distance',
           spherical: true,
-          maxDistance: 10 * 1000,
+          maxDistance: 20 * 1000,
           key: 'location',
+        },
+      },
+      {
+        $match: {
+          maxKW: {
+            $gte: dto.minKW,
+          }
         },
       },
       {

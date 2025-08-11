@@ -1,4 +1,4 @@
-import { IsLatitude, IsLongitude, IsNumber } from "class-validator";
+import { IsLatitude, IsLongitude, IsNumber, Min } from "class-validator";
 
 export class RouteQueryDto {
   @IsLatitude()
@@ -14,5 +14,6 @@ export class RouteQueryDto {
   endLongitude: number;
 
   @IsNumber()
+  @Min(0)
   minKW: number = 50;
 }

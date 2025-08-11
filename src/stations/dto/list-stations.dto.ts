@@ -1,4 +1,4 @@
-import { IsLatitude, IsLongitude } from "class-validator";
+import { IsLatitude, IsLongitude, IsNumber, Min } from "class-validator";
 
 export class ListStationsFilterDto {
   @IsLatitude()
@@ -6,4 +6,8 @@ export class ListStationsFilterDto {
 
   @IsLongitude()
   longitude: number;
+
+  @IsNumber()
+  @Min(0)
+  minKW: number = 0;
 }
