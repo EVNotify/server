@@ -162,7 +162,11 @@ export class StationsService {
       stations = await this.findAndUpdateStationsViaRequest(dto, akey);
     }
 
-    return stations.map((station) => new StationDto(station));
+    return stations.map((station) => {
+      const distanceToStation = distance([dto.longitude, dto.latitude], point(station.location.coordinates));
+
+      return new StationDto(station, distanceToStation);
+    });
   }
 
   async planRoute(dto: RouteQueryDto, akey: string): Promise<RouteDto> {
