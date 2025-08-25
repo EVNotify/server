@@ -28,6 +28,9 @@ export class Account {
 
   @Prop({ type: Date, default: null })
   routePlannedAt?: Date;
+
+  @Prop({ type: Date, default: null })
+  routeCalculatedAt?: Date;
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);

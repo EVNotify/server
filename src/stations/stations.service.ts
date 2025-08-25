@@ -16,6 +16,11 @@ import { Account } from "src/account/schemas/account.schema";
 import { RoutePlannedRecentlyException } from "./exceptions/route-planned-recently.exception";
 import { Feature, LineString, MultiPolygon, Polygon } from "geojson";
 import * as polyline from "@mapbox/polyline";
+import { RouteCalculationDto } from "./dto/route-calculation.dto";
+import { GraphHopperRequestFailedException } from "./exceptions/graphhopper-request-failed.exception";
+import { RoutePointsDto } from "./dto/route-points.dto";
+import { PointDto } from "./dto/point.dto";
+import { RouteCalculatedRecentlyException } from "./exceptions/route-calculated-recently.exception";
 
 @Injectable()
 export class StationsService {
@@ -25,12 +30,13 @@ export class StationsService {
     private readonly httpService: HttpService,
   ) { }
 
-  private baseUrl = 'https://api.openchargemap.io/v3';
+  private baseStationsUrl = 'https://api.openchargemap.io/v3';
+  private baseRoutingUrl = 'https://graphhopper.com/api/1';
 
   private async findAndUpdateStationsViaRequest(dto: ListStationsFilterDto, akey: string): Promise<Station[]> {
     const { data } = await firstValueFrom(
       this.httpService.get(
-        `${this.baseUrl}/poi?compact=true&verbose=false&opendata=true&countryCode=de&distance=20&distanceunit=km&latitude=${dto.latitude}&longitude=${dto.longitude}`
+        `${this.baseStationsUrl}/poi?compact=true&verbose=false&opendata=true&countryCode=de&distance=20&distanceunit=km&latitude=${dto.latitude}&longitude=${dto.longitude}`
       ).pipe(
         catchError((error: AxiosError) => {
           Logger.error(error.response.data);
@@ -105,7 +111,7 @@ export class StationsService {
     const encodedPolygon = polyline.fromGeoJSON(geoJSON);
     const { data } = await firstValueFrom(
       this.httpService.get(
-        `${this.baseUrl}/poi?compact=true&verbose=false&opendata=true&countryCode=de&distance=5&distanceunit=km&polyline=${encodedPolygon}`
+        `${this.baseStationsUrl}/poi?compact=true&verbose=false&opendata=true&countryCode=de&distance=5&distanceunit=km&polyline=${encodedPolygon}`
       ).pipe(
         catchError((error: AxiosError) => {
           Logger.error(error.response.data);
@@ -184,7 +190,6 @@ export class StationsService {
     const path = lineString([start, end]);
     const corridor = buffer(path, 5);
 
-
     await this.findAndUpdateStationsAlongRouteViaRequest(path);
 
     const stations = await this.findStationsAlongRouteWithinDatabase(corridor, dto.minKW);
@@ -208,5 +213,45 @@ export class StationsService {
     });
 
     return new RouteDto(routeStations);
+  }
+
+  async calculateRoute(dto: RouteCalculationDto, akey: string) {
+    const routeCalculatedAt = (await this.accountModel.findOne({
+      akey,
+    }).select('routeCalculatedAt')).routeCalculatedAt;
+    const recentlyCalculated = Date.now() - routeCalculatedAt?.getTime() < 60000;
+
+    if (recentlyCalculated) {
+      throw new RouteCalculatedRecentlyException();
+    }
+
+    const { data } = await this.httpService.axiosRef.get(
+        `${this.baseRoutingUrl}/route?point=${dto.startLatitude},${dto.startLongitude}&point=${dto.endLatitude},${dto.endLongitude}&instructions=false&key=${process.env.GRAPH_HOPPER_API_KEY}`,
+        {
+          headers: {
+            'User-Agent': 'EVNotify',
+            'X-API-Key': process.env.GRAPH_HOPPER_API_KEY,
+          },
+        }
+    ).catch((error: AxiosError) => {
+        Logger.error(error.response.data);
+        throw new GraphHopperRequestFailedException();
+    });
+
+    await this.accountModel.updateOne({
+      akey,
+    }, {
+      $set: {
+        routeCalculatedAt: new Date(),
+      },
+    });
+
+    if (!data?.paths?.length) {
+      throw new GraphHopperRequestFailedException();
+    }
+
+    const decodedRoute = polyline.decode(data.paths[0].points);
+
+    return new RoutePointsDto(decodedRoute.map((coords) => new PointDto(coords)));
   }
 }

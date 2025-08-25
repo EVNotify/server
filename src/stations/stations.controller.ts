@@ -8,6 +8,8 @@ import { RouteQueryDto } from "./dto/route-query.dto";
 import { PremiumGuard } from "src/premium/premium.guard";
 import { Premium } from "src/premium/decorators/premium.decorator";
 import { RoutePlannedRecentlyException } from "./exceptions/route-planned-recently.exception";
+import { RouteCalculationDto } from "./dto/route-calculation.dto";
+import { RouteCalculatedRecentlyException } from "./exceptions/route-calculated-recently.exception";
 
 @Controller('stations')
 @UseGuards(AuthGuard)
@@ -44,6 +46,23 @@ export class StationsController {
         throw new HttpException(error.message, HttpStatus.TOO_MANY_REQUESTS);
       }
       
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @Get(':akey/calculate-route')
+  @Premium()
+  async calculateRoute(
+    @Param('akey') akey: string,
+    @Query() dto: RouteCalculationDto,
+  ) {
+    try {
+      return await this.stationsService.calculateRoute(dto, akey);
+    } catch (error) {
+      if (error instanceof RouteCalculatedRecentlyException) {
+        throw new HttpException(error.message, HttpStatus.TOO_MANY_REQUESTS);
+      }
+
       throw new InternalServerErrorException();
     }
   }
