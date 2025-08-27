@@ -32,6 +32,18 @@ export class StationsController {
     }
   }
 
+  @Get(':akey/nearest')
+  async findNearest(
+    @Param('akey') akey: string,
+    @Query() dto: ListStationsFilterDto,
+  ): Promise<StationDto> {
+    try {
+      return await this.stationsService.findNearest(dto, akey);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
   @Get(':akey/plan-route')
   @Premium()
   async planRoute(

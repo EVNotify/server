@@ -33,11 +33,14 @@ export class StationsService {
   private baseStationsUrl = 'https://api.openchargemap.io/v3';
   private baseRoutingUrl = 'https://graphhopper.com/api/1';
 
-  private async findAndUpdateStationsViaRequest(dto: ListStationsFilterDto, akey: string): Promise<Station[]> {
+  private async findAndUpdateStationsViaRequest(dto: ListStationsFilterDto, akey: string, maxresults?: number): Promise<Station[]> {
+    let url = `${this.baseStationsUrl}/poi?compact=true&verbose=false&opendata=true&countryCode=de&distance=20&distanceunit=km&latitude=${dto.latitude}&longitude=${dto.longitude}`;
+    if (maxresults) {
+      url += `&maxresults=${maxresults}`;
+    }
+    
     const { data } = await firstValueFrom(
-      this.httpService.get(
-        `${this.baseStationsUrl}/poi?compact=true&verbose=false&opendata=true&countryCode=de&distance=20&distanceunit=km&latitude=${dto.latitude}&longitude=${dto.longitude}`
-      ).pipe(
+      this.httpService.get(url).pipe(
         catchError((error: AxiosError) => {
           Logger.error(error.response.data);
           throw new OCMRequestFailedException();
@@ -173,6 +176,26 @@ export class StationsService {
 
       return new StationDto(station, distanceToStation);
     });
+  }
+
+  async findNearest(dto: ListStationsFilterDto, akey: string): Promise<StationDto|null> {    
+    const account = await this.accountModel.findOne({ akey }).select('stationsRefreshedAt');
+    const refreshedOverADayAgo = Date.now() - account.stationsRefreshedAt?.getTime() > 24 * 60 * 60 * 1000;
+
+    let stations = await this.findNearbyStationsWithinDatabase(dto);
+
+    if (!stations.length || refreshedOverADayAgo) {
+      stations = await this.findAndUpdateStationsViaRequest(dto, akey, 1);
+    }
+
+    if (!stations.length) {
+      return null;
+    }
+
+    const station = stations[0];
+    const distanceToStation = distance([dto.longitude, dto.latitude], point(station.location.coordinates));
+
+    return new StationDto(station, distanceToStation);
   }
 
   async planRoute(dto: RouteQueryDto, akey: string): Promise<RouteDto> {
