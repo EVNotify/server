@@ -4,3 +4,4 @@ dist/
 ecosystem.config.js
 .vscode/
 coverage/
+evnotify.json
