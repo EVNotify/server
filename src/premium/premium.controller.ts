@@ -1,4 +1,4 @@
-import { ConflictException, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, NotFoundException, Param, Post, UseGuards } from "@nestjs/common";
+import { BadRequestException, ConflictException, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, NotFoundException, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "../account/account.guard";
 import { PremiumService } from "./premium.service";
@@ -8,6 +8,7 @@ import { PREMIUM_DURATION } from "./entities/premium-duration.entity";
 import { AdNotRedeemableException } from "./exceptions/ad-not-redeemable.exception";
 import { VoucherNotExistsException } from "./exceptions/voucher-not-exists.exception";
 import { VoucherAlreadyRedeemedException } from "./exceptions/voucher-already-redeemed.exception";
+import { PurchaseTokenInvalidException } from "./exceptions/purchase-token-invalid.exception";
 
 @Controller('premium')
 @UseGuards(AuthGuard)
@@ -80,18 +81,19 @@ export class PremiumController {
     }
   }
 
-  @Post(':akey/redeem/subscription')
+  @Post(':akey/redeem/subscription/:code')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  async redeemSubscription(@Param('akey') akey: string) {
+  async redeemSubscription(@Param('akey') akey: string, @Param('code') code: string) {
     try {
-      // TODO verify if subscription was really paid
-      const newExpiryDate = await this.premiumService.extendPremium(akey, PREMIUM_DURATION.ONE_MONTH);
+      const newExpiryDate = await this.premiumService.redeemSubscription(akey, code);
 
       return new PremiumStatusDto(newExpiryDate);
     } catch (error) {
       if (error instanceof AccountNotExistsException) {
         throw new NotFoundException(error.message);
+      } else if (error instanceof PurchaseTokenInvalidException) {
+        throw new BadRequestException(error.message);
       }
 
       throw new InternalServerErrorException();
