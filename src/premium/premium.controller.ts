@@ -100,37 +100,5 @@ export class PremiumController {
     }
   }
 
-  @Post('subscription/update')
-  async updateSubscription(@Body() body: any) {
-    let message;
-
-    try {
-      message = body.message?.data
-        ? JSON.parse(Buffer.from(body.message.data, 'base64').toString('utf-8'))
-        : null;
-    } catch (error) {
-      Logger.error('Error processing RTDN', error);
-      throw new InternalServerErrorException();
-    }
-
-    Logger.debug('Decoded RTDN message:', message);
-
-    if (!message?.subscriptionNotification) {
-      Logger.error('Invalid RTDN message format', message);
-      throw new BadRequestException('Invalid RTDN message format');
-    }
-
-    const { purchaseToken } = message.subscriptionNotification;
-
-    const subscription = await this.premiumService.findSubscriptionByPurchaseToken(purchaseToken);
-
-    if (!subscription) {
-      Logger.error('Subscription not found for purchase token', purchaseToken);
-      throw new NotFoundException('Subscription not found');
-    }
-
-    const newExpiryDate = await this.premiumService.redeemSubscription(subscription.akey, purchaseToken);
-
-    return new PremiumStatusDto(newExpiryDate);
-  }
+  
 }

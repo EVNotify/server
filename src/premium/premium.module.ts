@@ -6,6 +6,7 @@ import { Account, AccountSchema } from '../account/schemas/account.schema';
 import { AccountModule } from '../account/account.module';
 import { Voucher, VoucherSchema } from './schemas/voucher.schema';
 import { Subscription, SubscriptionSchema } from './schemas/subscription.schema';
+import { PremiumSubscriber } from './premium.subscriber';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { Subscription, SubscriptionSchema } from './schemas/subscription.schema'
     AccountModule,
   ],
   controllers: [PremiumController],
-  providers: [PremiumService],
+  providers: [PremiumService, PremiumSubscriber],
   exports: [PremiumService],
 })
 export class PremiumModule {}
