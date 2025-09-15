@@ -9,6 +9,7 @@ import { VoucherAlreadyRedeemedException } from "./exceptions/voucher-already-re
 import { randomBytes } from "crypto";
 import { google } from "googleapis";
 import { PurchaseTokenInvalidException } from "./exceptions/purchase-token-invalid.exception";
+import { Subscription } from "./schemas/subscription.schema";
 
 @Injectable()
 export class PremiumService {
@@ -17,12 +18,17 @@ export class PremiumService {
   constructor(
     @InjectModel(Account.name) private accountModel: Model<Account>,
     @InjectModel(Voucher.name) private voucherModel: Model<Voucher>,
+    @InjectModel(Subscription.name) private subscriptionModel: Model<Subscription>,
   ) {
     const auth = new google.auth.GoogleAuth({
       keyFile: 'evnotify.json',
       scopes: ['https://www.googleapis.com/auth/androidpublisher'],
     });
     this.playDeveloperApi = google.androidpublisher({ version: 'v3', auth });
+  }
+
+  async findSubscriptionByPurchaseToken(purchaseToken: string): Promise<Subscription | null> {
+    return await this.subscriptionModel.findOne({ purchaseToken });
   }
 
   async getExpiryDate(akey: string): Promise<Date|null> {
@@ -124,6 +130,16 @@ export class PremiumService {
       $set: {
         premiumUntil: expiryDate,
       }
+    });
+
+    await this.subscriptionModel.updateOne({
+      akey,
+    }, {
+      $set: {
+        purchaseToken,
+      }
+    }, {
+      upsert: true,
     });
 
     return expiryDate;
