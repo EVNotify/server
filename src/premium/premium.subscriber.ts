@@ -42,6 +42,12 @@ export class PremiumSubscriber implements OnModuleInit {
       return;
     }
 
+    if (data.subscriptionNotification.notificationType !== 2) {
+      Logger.debug('Ignoring non-renewal notification type', data.subscriptionNotification.notificationType);
+      message.ack();
+      return;
+    }
+
     const { purchaseToken } = data.subscriptionNotification;
 
     const subscription = await this.premiumService.findSubscriptionByPurchaseToken(purchaseToken);
