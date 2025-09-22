@@ -322,6 +322,8 @@ describe('LogsController', () => {
 
     await controller.syncData(testAccount.akey, dto);
 
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     const response = await controller.findAll(testAccount.akey);
 
     expect(response).toHaveLength(2);
@@ -359,6 +361,8 @@ describe('LogsController', () => {
 
     await controller.syncData(testAccount.akey, dto);
 
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     const response = await controller.findOne(testAccount.akey, chargeLogId);
 
     expect(response).toBeInstanceOf(LogDto);
@@ -375,6 +379,8 @@ describe('LogsController', () => {
     dto.cec = 30069.3;
 
     await controller.syncData(testAccount.akey, dto);
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const response = await controller.findOne(testAccount.akey, chargeLogId);
 
