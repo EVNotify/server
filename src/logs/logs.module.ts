@@ -8,6 +8,7 @@ import { MetadataHandler } from './handler/metadata';
 import { LastSyncHandler } from './handler/last-sync';
 import { LastSync, LastSyncSchema } from './schemas/last-sync.schema';
 import { CronHandler } from './handler/cron';
+import { PremiumModule } from '../premium/premium.module';
 
 @Module({
   controllers: [LogsController],
@@ -18,6 +19,7 @@ import { CronHandler } from './handler/cron';
       { name: Log.name, schema: LogSchema },
       { name: LastSync.name, schema: LastSyncSchema },
     ]),
+    PremiumModule,
   ],
   exports: [LogsService],
 })

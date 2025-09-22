@@ -25,10 +25,13 @@ import { LogMissingSyncDataException } from './exceptions/log-missing-sync-data.
 import { TYPE } from './entities/type.entity';
 import { LogNotRunningException } from './exceptions/log-not-running.exception';
 import { HISTORY_TYPE } from './entities/history-type.entity';
+import { PremiumGuard } from '../premium/premium.guard';
+import { Premium } from '../premium/decorators/premium.decorator';
 
 @Controller('logs')
 @UseGuards(AuthGuard)
 @UseGuards(LogsGuard)
+@UseGuards(PremiumGuard)
 @ApiTags('Logs & Sync')
 @ApiBearerAuth()
 export class LogsController {
@@ -45,6 +48,7 @@ export class LogsController {
   }
 
   @Get(':akey/running')
+  @Premium()
   async findRunning(@Param('akey') akey: string) {
     try {
       return await this.logsService.findRunning(akey);
