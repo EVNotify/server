@@ -11,6 +11,7 @@ import { STATUS } from '../entities/status.entity';
 import { Log } from '../schemas/log.schema';
 import { Sync } from '../schemas/sync.schema';
 import { TYPE } from '../entities/type.entity';
+import { buffer, distance, lineString, point, pointToLineDistance } from "@turf/turf";
 
 @Injectable()
 export class MetadataHandler {
@@ -93,9 +94,13 @@ export class MetadataHandler {
     log.history.forEach((entry) => {
       if (entry.dcBatteryPower != null) {
         averageKWs.push(entry.dcBatteryPower);
-      } else if (entry.speed != null) {
+      }
+
+      if (entry.speed != null) {
         averageSpeeds.push(entry.speed);
-      } else if (entry.latitude != null && entry.longitude != null) {
+      }
+
+      if (entry.latitude != null && entry.longitude != null) {
         distances.push({
           latitude: entry.latitude,
           longitude: entry.longitude,
@@ -114,7 +119,28 @@ export class MetadataHandler {
         averageSpeeds.reduce((a, b) => a + b, sync.speed) /
         (averageSpeeds.length + 1);
     }
-    // TODO calculate distance
+
+    let totalDistance = 0;
+
+    if (sync.latitude != null && sync.longitude != null) {
+      distances.push({
+        latitude: sync.latitude,
+        longitude: sync.longitude,
+      });
+    }
+
+    distances.forEach((coord, index) => {
+      if (index === 0) { 
+        return; 
+      }
+      
+      const currentCoord = point([coord.longitude, coord.latitude]);
+      const previousCoord = point([distances[index - 1].longitude, distances[index - 1].latitude]);
+    
+      totalDistance += distance(previousCoord, currentCoord);
+    });
+
+    log.distance = parseFloat(totalDistance.toFixed(2));
 
     if (sync.cec != null && log.startCEC) {
       const amount = parseFloat((sync.cec - log.startCEC).toFixed(1));
