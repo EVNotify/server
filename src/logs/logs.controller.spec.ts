@@ -357,7 +357,10 @@ describe('LogsController', () => {
 
     dto.dcBatteryPower = 2;
     dto.cec = 30069.1;
+    dto.ced = 30059;
     dto.socDisplay = 77;
+    dto.latitude = 32.125;
+    dto.longitude = 34.112;
 
     await controller.syncData(testAccount.akey, dto);
 
@@ -370,7 +373,8 @@ describe('LogsController', () => {
     expect(response).toHaveProperty('rechargedKWh', 0);
     expect(response).toHaveProperty('startSOC', 75);
     expect(response).toHaveProperty('currentSOC', 77);
-    expect(response).toHaveProperty('dischargedKWh', undefined);
+    expect(response).toHaveProperty('dischargedKWh', 0);
+    expect(response).toHaveProperty('distance', 0);
   });
 
   it('should update rechargedKWh metadata when adding new cec value', async () => {
@@ -386,6 +390,37 @@ describe('LogsController', () => {
 
     expect(response).toBeInstanceOf(LogDto);
     expect(response).toHaveProperty('rechargedKWh', 0.2);
+  });
+
+  it('should update dischargedKWh metadata when adding new ced value', async () => {
+    const dto = new SyncDto();
+
+    dto.ced = 30062.4;
+
+    await controller.syncData(testAccount.akey, dto);
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const response = await controller.findOne(testAccount.akey, chargeLogId);
+
+    expect(response).toBeInstanceOf(LogDto);
+    expect(response).toHaveProperty('dischargedKWh', 3.4);
+  });
+
+  it('should update distance metadata when adding new location', async () => {
+    const dto = new SyncDto();
+
+    dto.latitude = 32.135;
+    dto.longitude = 34.125;
+
+    await controller.syncData(testAccount.akey, dto);
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const response = await controller.findOne(testAccount.akey, chargeLogId);
+
+    expect(response).toBeInstanceOf(LogDto);
+    expect(response).toHaveProperty('distance', 1.65);
   });
 
   it('should find current running log', async () => {
