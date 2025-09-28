@@ -20,12 +20,15 @@ import { Sync } from './schemas/sync.schema';
 import { TYPE } from './entities/type.entity';
 import { LogNotRunningException } from './exceptions/log-not-running.exception';
 import { HISTORY_TYPE } from './entities/history-type.entity';
+import { PremiumService } from '../premium/premium.service';
+import { LogRequiresPremiumException } from './exceptions/log-requires-premium.exception';
 
 @Injectable()
 export class LogsService {
   constructor(
     @InjectModel(Log.name) private logModel: Model<Log>,
     @InjectModel(LastSync.name) private lastSyncModel: Model<LastSync>,
+    private readonly premiumService: PremiumService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -117,7 +120,19 @@ export class LogsService {
       logs.where({ type });
     }
 
-    return Promise.resolve((await logs).map((log) => new LogDto(log)));
+    const isPremium = await this.premiumService.getExpiryDate(akey);
+
+    const logsToReturn = [];
+
+    (await logs).forEach((log) => {
+      if (log.status === STATUS.RUNNING && !isPremium) {
+        // Skip running logs for non-premium users
+      } else {
+        logsToReturn.push(log);
+      }
+    });
+    
+    return Promise.resolve(logsToReturn.map((log) => new LogDto(log)));
   }
 
   async findOne(akey: string, id: string): Promise<LogDto> {
@@ -129,11 +144,35 @@ export class LogsService {
       throw new LogNotExistsException();
     }
 
+    if (log.status === STATUS.RUNNING) {
+      const isPremium = await this.premiumService.getExpiryDate(akey);
+
+      if (!isPremium) {
+        throw new LogRequiresPremiumException();
+      }
+    }
+
     return Promise.resolve(new LogDto(log));
   }
 
   async findOneWithHistory(akey: string, id: string, type: HISTORY_TYPE = HISTORY_TYPE.ALL): Promise<Sync[]> {
     let history = [];
+
+    const logStatus = await this.logModel
+      .findOne({ akey, _id: id })
+      .select('status');
+
+    if (!logStatus) {
+      throw new LogNotExistsException();
+    }
+
+    if (logStatus.status === STATUS.RUNNING) {
+      const isPremium = await this.premiumService.getExpiryDate(akey);
+
+      if (!isPremium) {
+        throw new LogRequiresPremiumException();
+      }
+    }
 
     switch (type) {
       case HISTORY_TYPE.ALL:

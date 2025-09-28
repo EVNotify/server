@@ -27,6 +27,8 @@ import { LogNotRunningException } from './exceptions/log-not-running.exception';
 import { HISTORY_TYPE } from './entities/history-type.entity';
 import { PremiumGuard } from '../premium/premium.guard';
 import { Premium } from '../premium/decorators/premium.decorator';
+import { LogRequiresPremiumException } from './exceptions/log-requires-premium.exception';
+import { PremiumRequiredException } from '../premium/exceptions/premium-required.exception';
 
 @Controller('logs')
 @UseGuards(AuthGuard)
@@ -69,6 +71,8 @@ export class LogsController {
     } catch (error) {
       if (error instanceof LogNotExistsException) {
         throw new NotFoundException(error.message);
+      } else if (error instanceof LogRequiresPremiumException) {
+        throw new PremiumRequiredException(error.message);
       }
 
       throw new InternalServerErrorException();
@@ -87,6 +91,8 @@ export class LogsController {
     } catch (error) {
       if (error instanceof LogNotExistsException) {
         throw new NotFoundException(error.message);
+      } else if (error instanceof LogRequiresPremiumException) {
+        throw new PremiumRequiredException(error.message);
       }
 
       throw new InternalServerErrorException();
