@@ -16,6 +16,8 @@ import { STATUS } from './entities/status.entity';
 import { LastSyncDto } from './dto/last-sync.dto';
 import { TYPE } from './entities/type.entity';
 import { HISTORY_TYPE } from './entities/history-type.entity';
+import { PremiumService } from '../premium/premium.service';
+import { PremiumRequiredException } from '../premium/exceptions/premium-required.exception';
 
 describe('LogsController', () => {
   let accountService: AccountService;
@@ -24,6 +26,10 @@ describe('LogsController', () => {
   let logId: string;
   let chargeLogId: string;
   let syncTimestamp: Date;
+
+  const mockPremiumService = {
+    getExpiryDate: jest.fn(),
+  };
 
   async function createAccount() {
     const dto = new CreateAccountDto();
@@ -35,6 +41,8 @@ describe('LogsController', () => {
   }
 
   beforeEach(async () => {
+    mockPremiumService.getExpiryDate.mockReset();
+
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         LogsModule,
@@ -42,7 +50,10 @@ describe('LogsController', () => {
         MongooseModule.forRoot(process.env.DATABASE_URI),
         EventEmitterModule.forRoot(),
       ],
-    }).compile();
+    })
+      .overrideProvider(PremiumService)
+      .useValue(mockPremiumService)
+      .compile();
 
     accountService = module.get<AccountService>(AccountService);
     controller = module.get<LogsController>(LogsController);
@@ -113,7 +124,15 @@ describe('LogsController', () => {
     expect(response).toBeUndefined();
   });
 
-  it('should be able to retrieve log in list', async () => {
+  it('should not be able to retrieve running log in list when not premium', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(null);
+    const response = await controller.findAll(testAccount.akey);
+
+    expect(response).toHaveLength(0);
+  });
+
+  it('should be able to retrieve running log in list when premium', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findAll(testAccount.akey);
 
     expect(response).toHaveLength(1);
@@ -126,19 +145,36 @@ describe('LogsController', () => {
   });
 
   it('should be able to filter out log in list', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findAll(testAccount.akey, TYPE.DRIVE);
 
     expect(response).toHaveLength(0);
   });
 
-  it('should be able to retrieve it', async () => {
+  it('should not be able to retrieve running log when not premium', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(null);
+    await expect(async () => {
+      await controller.findOne(testAccount.akey, logId);
+    }).rejects.toThrow(PremiumRequiredException);
+  });
+
+  it('should be able to retrieve log explicitly', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOne(testAccount.akey, logId);
 
     expect(response).toBeInstanceOf(LogDto);
     expect(response).not.toHaveProperty('history');
   });
 
-  it('should be able to retrieve log history', async () => {
+  it('should not be able to retrieve log history when not premium', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(null);
+    await expect(async () => {
+      await controller.findOneWithHistory(testAccount.akey, logId);
+    }).rejects.toThrow(PremiumRequiredException);
+  });
+
+  it('should be able to retrieve log history when premium', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOneWithHistory(
       testAccount.akey,
       logId,
@@ -149,7 +185,20 @@ describe('LogsController', () => {
     expect(response[0]).toHaveProperty('timestamp');
   });
 
-  it('should be able to retrieve last sync data', async () => {
+  it('should be able to retrieve last sync data when not premium', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(null);
+    const response = await controller.lastSync(testAccount.akey);
+
+    expect(response).toBeInstanceOf(LastSyncDto);
+    expect(response).toHaveProperty('updatedAt');
+    expect(response).toHaveProperty('socDisplay', 80);
+    expect(new Date(response.updatedAt).getTime()).toBeGreaterThan(
+      syncTimestamp.getTime(),
+    );
+  });
+
+  it('should be able to retrieve last sync data when premium', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.lastSync(testAccount.akey);
 
     expect(response).toBeInstanceOf(LastSyncDto);
@@ -173,6 +222,7 @@ describe('LogsController', () => {
   });
 
   it('should be able to retrieve log history with timestamp', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOneWithHistory(
       testAccount.akey,
       logId,
@@ -188,6 +238,7 @@ describe('LogsController', () => {
   });
 
   it('should be able to retrieve location log history', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOneWithHistory(
       testAccount.akey,
       logId,
@@ -204,6 +255,7 @@ describe('LogsController', () => {
   });
 
   it('should be able to retrieve battery log history', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOneWithHistory(
       testAccount.akey,
       logId,
@@ -215,6 +267,7 @@ describe('LogsController', () => {
   });
 
   it('should be able to retrieve all log history', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOneWithHistory(
       testAccount.akey,
       logId,
@@ -236,6 +289,7 @@ describe('LogsController', () => {
   });
 
   it('should contain new title', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOne(testAccount.akey, logId);
 
     expect(response).toHaveProperty('title', 'My title');
@@ -260,8 +314,13 @@ describe('LogsController', () => {
 
     await controller.syncData(testAccount.akey, dto);
 
-    const response = await controller.findAll(testAccount.akey);
+    let response = await controller.findAll(testAccount.akey);
 
+    expect(response).toHaveLength(0);
+    
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
+
+    response = await controller.findAll(testAccount.akey);
     expect(response).toHaveLength(1);
     expect(response.at(0)).toHaveProperty('type', TYPE.UNKNOWN);
 
@@ -278,6 +337,7 @@ describe('LogsController', () => {
   });
 
   it('should contain two history records', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOneWithHistory(
       testAccount.akey,
       logId,
@@ -288,7 +348,20 @@ describe('LogsController', () => {
     expect(response.at(1)).toHaveProperty('socDisplay', 81);
   });
 
-  it('should be able to retrieve updated last sync data', async () => {
+  it('should be able to retrieve updated last sync data when not premium', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(null);
+    const response = await controller.lastSync(testAccount.akey);
+
+    expect(response).toBeInstanceOf(LastSyncDto);
+    expect(response).toHaveProperty('updatedAt');
+    expect(response).toHaveProperty('socDisplay', 81);
+    expect(new Date(response.updatedAt).getTime()).toBeGreaterThan(
+      syncTimestamp.getTime(),
+    );
+  });
+
+  it('should be able to retrieve updated last sync data when premium', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.lastSync(testAccount.akey);
 
     expect(response).toBeInstanceOf(LastSyncDto);
@@ -306,6 +379,7 @@ describe('LogsController', () => {
 
     await controller.syncData(testAccount.akey, dto);
 
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findAll(testAccount.akey);
 
     expect(response).toHaveLength(1);
@@ -324,8 +398,13 @@ describe('LogsController', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const response = await controller.findAll(testAccount.akey);
+    mockPremiumService.getExpiryDate.mockResolvedValue(null);
+    let response = await controller.findAll(testAccount.akey);
 
+    expect(response).toHaveLength(1);
+
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
+    response = await controller.findAll(testAccount.akey);
     expect(response).toHaveLength(2);
     expect(response.at(0)).toHaveProperty('type', TYPE.CHARGE);
     chargeLogId = response[0].id;
@@ -340,6 +419,7 @@ describe('LogsController', () => {
   });
 
   it('should contain metadata', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOne(testAccount.akey, chargeLogId);
 
     expect(response).toBeInstanceOf(LogDto);
@@ -366,6 +446,7 @@ describe('LogsController', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOne(testAccount.akey, chargeLogId);
 
     expect(response).toBeInstanceOf(LogDto);
@@ -386,6 +467,7 @@ describe('LogsController', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOne(testAccount.akey, chargeLogId);
 
     expect(response).toBeInstanceOf(LogDto);
@@ -401,6 +483,7 @@ describe('LogsController', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOne(testAccount.akey, chargeLogId);
 
     expect(response).toBeInstanceOf(LogDto);
@@ -417,6 +500,7 @@ describe('LogsController', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findOne(testAccount.akey, chargeLogId);
 
     expect(response).toBeInstanceOf(LogDto);
@@ -424,6 +508,7 @@ describe('LogsController', () => {
   });
 
   it('should find current running log', async () => {
+    mockPremiumService.getExpiryDate.mockResolvedValue(new Date('2099-12-31'));
     const response = await controller.findRunning(testAccount.akey);
 
     expect(response).toBeInstanceOf(LogDto);
