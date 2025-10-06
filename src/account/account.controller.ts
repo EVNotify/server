@@ -14,7 +14,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Exception } from '../utils/exception';
 import { AuthGuard } from './account.guard';
 import { AccountService } from './account.service';
@@ -67,7 +67,7 @@ export class AccountController {
   }
 
   @Get(':akey')
-  @ApiBearerAuth()
+  @ApiSecurity('custom-auth')
   async findOne(@Param('akey') akey: string) {
     const account = await this.accountService.findOne(akey);
 
@@ -101,7 +101,7 @@ export class AccountController {
   }
 
   @Patch(':akey/token')
-  @ApiBearerAuth()
+  @ApiSecurity('custom-auth')
   async changeToken(
     @Param('akey') akey: string,
     @Body() changeTokenDto: ChangeTokenDto,
@@ -125,7 +125,7 @@ export class AccountController {
   }
 
   @Patch(':akey/password')
-  @ApiBearerAuth()
+  @ApiSecurity('custom-auth')
   async changePassword(
     @Param('akey') akey: string,
     @Body() changePasswordDto: ChangePasswordDto,

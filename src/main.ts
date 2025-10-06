@@ -23,7 +23,16 @@ async function bootstrap() {
     .setTitle('EVNotify API')
     .setDescription('Documentation for EVNotify API')
     .setVersion('3.0')
-    .addBearerAuth()
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'Authorization',
+        in: 'header',
+        description:
+          'Enter your authorization string in the format: <your-akey> <your-api-token>, e.g. "123456 8c6a51c82307e2b4df0c"',
+      },
+      'custom-auth',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
 
