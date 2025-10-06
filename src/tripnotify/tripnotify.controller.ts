@@ -1,5 +1,5 @@
 import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, InternalServerErrorException, NotFoundException, Param, Post, UseGuards } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { TripNotifyService } from "./tripnotify.service";
 import { TripDto } from "./dto/trip.dto";
 import { AuthGuard } from "src/account/account.guard";
@@ -20,6 +20,7 @@ import { TripInformationDto } from "./dto/trip-information.dto";
 @Controller('trips')
 @UseGuards(AuthGuard)
 @UseGuards(PremiumGuard)
+@ApiSecurity('custom-auth')
 @ApiTags('TripNotify')
 export class TripNotifyController {
   constructor(

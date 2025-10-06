@@ -1,5 +1,5 @@
 import { BadRequestException, Body, ConflictException, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Logger, NotFoundException, Param, Post, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "../account/account.guard";
 import { PremiumService } from "./premium.service";
 import { PremiumStatusDto } from "./dto/premium-status.dto";
@@ -19,7 +19,7 @@ export class PremiumController {
   ) { }
 
   @Get(':akey')
-  @ApiBearerAuth()
+  @ApiSecurity('custom-auth')
   async status(@Param('akey') akey: string): Promise<PremiumStatusDto> {
     try {
       const expiryDate = await this.premiumService.getExpiryDate(akey);
@@ -35,7 +35,7 @@ export class PremiumController {
   }
 
   @Post(':akey/redeem/ad')
-  @ApiBearerAuth()
+  @ApiSecurity('custom-auth')
   @HttpCode(HttpStatus.OK)
   async redeemAd(@Param('akey') akey: string): Promise<PremiumStatusDto> {
     try {
@@ -61,7 +61,7 @@ export class PremiumController {
   }
 
   @Post(':akey/redeem/voucher/:code')
-  @ApiBearerAuth()
+  @ApiSecurity('custom-auth')
   @HttpCode(HttpStatus.OK)
   async redeemVoucher(@Param('akey') akey: string, @Param('code') code: string): Promise<PremiumStatusDto> {
     try {
@@ -82,7 +82,7 @@ export class PremiumController {
   }
 
   @Post(':akey/redeem/subscription/:code')
-  @ApiBearerAuth()
+  @ApiSecurity('custom-auth')
   @HttpCode(HttpStatus.OK)
   async redeemSubscription(@Param('akey') akey: string, @Param('code') code: string) {
     try {

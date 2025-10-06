@@ -1,5 +1,5 @@
 import { Controller, Get, HttpException, HttpStatus, InternalServerErrorException, Param, Query, UseGuards } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/account/account.guard";
 import { StationsService } from "./stations.service";
 import { ListStationsFilterDto } from "./dto/list-stations.dto";
@@ -14,6 +14,7 @@ import { RouteCalculatedRecentlyException } from "./exceptions/route-calculated-
 @Controller('stations')
 @UseGuards(AuthGuard)
 @UseGuards(PremiumGuard)
+@ApiSecurity('custom-auth') 
 @ApiTags('Stations')
 export class StationsController {
   constructor(

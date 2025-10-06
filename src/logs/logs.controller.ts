@@ -19,7 +19,7 @@ import { AuthGuard } from '../account/account.guard';
 import { LogsGuard } from './logs.guard';
 import { OwnsLog } from './decorators/owns-log.decorator';
 import { SyncDto } from './dto/sync.dto';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiSecurity } from '@nestjs/swagger';
 import { LogNotExistsException } from './exceptions/log-not-exists.exception';
 import { LogMissingSyncDataException } from './exceptions/log-missing-sync-data.exception';
 import { TYPE } from './entities/type.entity';
@@ -35,7 +35,7 @@ import { PremiumRequiredException } from '../premium/exceptions/premium-required
 @UseGuards(LogsGuard)
 @UseGuards(PremiumGuard)
 @ApiTags('Logs & Sync')
-@ApiBearerAuth()
+@ApiSecurity('custom-auth')
 export class LogsController {
   constructor(private readonly logsService: LogsService) {}
 
