@@ -6,6 +6,7 @@ import { Log, LogSchema } from "../logs/schemas/log.schema";
 import { LastSync, LastSyncSchema } from "../logs/schemas/last-sync.schema";
 import { MigrationService } from "./migration.service";
 import { MigrationAccount, MigrationAccountSchema } from "./schemas/migration-account.schema";
+import { PremiumModule } from "../premium/premium.module";
 
 @Module({
     controllers: [MigrationController],
@@ -16,6 +17,7 @@ import { MigrationAccount, MigrationAccountSchema } from "./schemas/migration-ac
             { name: LastSync.name, schema: LastSyncSchema },
             { name: MigrationAccount.name, schema: MigrationAccountSchema },
         ]),
+        PremiumModule,
     ],
 })
 export class MigrationModule { };
