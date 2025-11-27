@@ -54,7 +54,7 @@ describe('SettingsGuard', () => {
       .spyOn(reflector, 'get')
       .mockReturnValue(FIELD_TYPE_SETTINGS);
 
-    const req = { params: { email: 'test@example.com' } };
+    const req = { params: { field: 'email' } };
     const context = createMockContext(() => {}, req);
 
     await expect(guard.canActivate(context)).resolves.toBe(true);

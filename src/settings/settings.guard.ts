@@ -25,7 +25,7 @@ export class SettingsGuard implements CanActivate {
 
     const req = context.switchToHttp().getRequest();
     const sourceData = {
-      ...(req.params || {}),
+      ...{[(req.params || {}).field]: null},
       ...(req.body || {}),
     };
 
