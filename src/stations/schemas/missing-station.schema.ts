@@ -13,14 +13,26 @@ export class MissingStation {
   @Prop({ type: Types.ObjectId, ref: 'Log', required: true })
   logRef: Types.ObjectId;
 
-  @Prop({ required: true })
-  latitude: number;
-
-  @Prop({ required: true })
-  longitude: number;
+  @Prop({
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point',
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    },
+  })
+  location: {
+    type: 'Point';
+    coordinates: [number, number];
+  };
 
   @Prop()
   note: string;
 }
 
 export const MissingStationSchema = SchemaFactory.createForClass(MissingStation);
+
+MissingStationSchema.index({ location: '2dsphere' });

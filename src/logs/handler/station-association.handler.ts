@@ -58,12 +58,29 @@ export class StationAssociationHandler {
 
         await this.logModel.updateOne({ _id: log._id, akey: log.akey }, { $set: { station: stationDoc._id } });
       } else {
-        await this.missingStationModel.create({
-          akey: log.akey,
-          logRef: log._id,
-          latitude,
-          longitude,
-        });
+        await this.missingStationModel.ensureIndexes();
+
+        const msResults = await this.missingStationModel.aggregate([
+          {
+            $geoNear: {
+              near: { type: 'Point', coordinates: [longitude, latitude] },
+              distanceField: 'distance',
+              spherical: true,
+              maxDistance: 200,
+              key: 'location',
+            },
+          },
+          { $sort: { distance: 1 } },
+          { $limit: 1 },
+        ]);
+
+        if (!msResults.length) {
+          await this.missingStationModel.create({
+            akey: log.akey,
+            logRef: log._id,
+            location: { type: 'Point', coordinates: [longitude, latitude] },
+          });
+        }
       }
     } catch (error) {
       Logger.error('Error in StationAssociationHandler', error);
