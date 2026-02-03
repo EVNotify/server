@@ -124,6 +124,9 @@ export class Log {
 
   @Prop()
   thresholdReached: Date;
+
+  @Prop({ type: Types.ObjectId, ref: 'Station' })
+  station: Types.ObjectId;
 }
 
 export const LogSchema = SchemaFactory.createForClass(Log);
