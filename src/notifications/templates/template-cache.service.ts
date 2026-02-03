@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { readdirSync, readFileSync, statSync } from "fs";
 import Handlebars from "handlebars";
 import { basename, join } from "path";
+import { LANGUAGES } from "src/settings/entities/language.entity";
 
 @Injectable()
 export class TemplateCacheService implements OnModuleInit {
@@ -35,7 +36,17 @@ export class TemplateCacheService implements OnModuleInit {
     Logger.log('Initialized templates', TemplateCacheService.name);
   }
 
-  getTemplate(name: string, locale: string): Handlebars.TemplateDelegate|null {
-    return this.templateMap.get(name)?.get(locale);
+  getTemplate(name: string, locale: string = LANGUAGES.en): Handlebars.TemplateDelegate|null {
+    const template = this.templateMap.get(name)?.get(locale);
+    
+    if (template) {
+      return template;
+    }
+    
+    if (locale !== LANGUAGES.en) {
+      return this.templateMap.get(name)?.get(LANGUAGES.en) || null;
+    }
+    
+    return null;
   }
 }
