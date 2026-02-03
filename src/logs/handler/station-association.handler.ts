@@ -1,14 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { LOG_FINISHED_EVENT } from 'src/logs/entities/log.entity';
-import { Log } from 'src/logs/schemas/log.schema';
+import { LOG_FINISHED_EVENT } from '../entities/log.entity';
+import { Log } from '../schemas/log.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { LogsService } from 'src/logs/logs.service';
-import { TYPE } from 'src/logs/entities/type.entity';
-import { HISTORY_TYPE } from 'src/logs/entities/history-type.entity';
-import { Station } from 'src/stations/schemas/station.schema';
-import { MissingStation } from 'src/stations/schemas/missing-station.schema';
+import { LogsService } from '../logs.service';
+import { TYPE } from '../entities/type.entity';
+import { HISTORY_TYPE } from '../entities/history-type.entity';
+import { Station } from '../../stations/schemas/station.schema';
+import { MissingStation } from '../../stations/schemas/missing-station.schema';
 
 @Injectable()
 export class StationAssociationHandler {

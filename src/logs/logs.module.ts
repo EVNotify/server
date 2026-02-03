@@ -9,8 +9,8 @@ import { LastSyncHandler } from './handler/last-sync';
 import { LastSync, LastSyncSchema } from './schemas/last-sync.schema';
 import { CronHandler } from './handler/cron';
 import { PremiumModule } from '../premium/premium.module';
-import { Station, StationSchema } from 'src/stations/schemas/station.schema';
-import { MissingStation, MissingStationSchema } from 'src/stations/schemas/missing-station.schema';
+import { Station, StationSchema } from '../stations/schemas/station.schema';
+import { MissingStation, MissingStationSchema } from '../stations/schemas/missing-station.schema';
 import { StationAssociationHandler } from './handler/station-association.handler';
 
 @Module({
