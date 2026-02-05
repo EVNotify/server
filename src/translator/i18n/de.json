@@ -1,3 +1,4 @@
 {
-  "email_subject_threshold_reached": "Gewünschter Ladezustand mit {{soc}}% erreicht"
+  "email_subject_threshold_reached": "Gewünschter Ladezustand mit {{soc}}% erreicht",
+  "telegram.message.threshold_reached": "Der gewünschte Ladezustand von {{soc}}% wurde erreicht"
 }

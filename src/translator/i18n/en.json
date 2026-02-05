@@ -1,3 +1,4 @@
 {
-  "email_subject_threshold_reached": "Desired state of charge reached with {{soc}}%"
+  "email_subject_threshold_reached": "Desired state of charge reached with {{soc}}%",
+  "telegram.message.threshold_reached": "Your desired state of charge of {{soc}}% has been achieved"
 }

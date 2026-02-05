@@ -1,3 +1,4 @@
 {
-  "email_subject_threshold_reached": "Nivel de carga deseado alcanzado con {{soc}}%"
+  "email_subject_threshold_reached": "Nivel de carga deseado alcanzado con {{soc}}%",
+  "telegram.message.threshold_reached": "Su nivel de carga deseado de {{soc}}% ha sido alcanzado"
 }

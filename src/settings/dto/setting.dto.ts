@@ -27,6 +27,7 @@ export const FIELDS = [
   'rangeUnit',
   'device',
   'email',
+  'telegram',
 ];
 
 export class SettingDto {
@@ -41,6 +42,7 @@ export class SettingDto {
     this.rangeUnit = settings?.rangeUnit;
     this.device = settings?.device;
     this.email = settings?.email;
+    this.telegram = settings?.telegram;
   }
 
   @IsBoolean()
@@ -86,4 +88,8 @@ export class SettingDto {
   @IsEmail()
   @IsOptional()
   email?: string;
-}
+
+  @IsNumber()
+  @IsOptional()
+  telegram?: number;
+} 

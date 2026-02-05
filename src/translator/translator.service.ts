@@ -30,8 +30,9 @@ export class TranslatorService implements OnModuleInit {
     Logger.log('Initialized translations', TranslatorService.name);
   }
 
-  translate(key: string, locale: LANGUAGES, data: Record<string, any> = {}): string {
-    const translations = this.translationMap.get(locale);
+  translate(key: string, locale: LANGUAGES = LANGUAGES.en, data: Record<string, any> = {}): string {
+    const localeToUse = locale && this.translationMap.has(locale) ? locale : LANGUAGES.en;
+    const translations = this.translationMap.get(localeToUse);
     const template = translations?.[key];
 
     if (!template) {

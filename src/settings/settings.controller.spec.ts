@@ -115,4 +115,14 @@ describe('SettingsController', () => {
 
     expect(response).toHaveProperty('socThreshold', 80);
   });
-});
+  it('should be able to set and retrieve telegram setting', async () => {
+    settings.telegram = 1337;
+
+    const updateResponse = await controller.update(testAccount.akey, settings);
+
+    expect(updateResponse).toBeInstanceOf(SettingDto);
+    expect(updateResponse).toHaveProperty('telegram', 1337);
+
+    const response = await controller.findOneSetting(testAccount.akey, 'telegram');
+    expect(response).toHaveProperty('telegram', 1337);
+  });});
