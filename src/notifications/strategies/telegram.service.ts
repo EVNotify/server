@@ -111,6 +111,22 @@ export class TelegramService {
       return;
     }
 
+    const existingLink = await this.settingsModel.findOne({
+      akey: user.akey,
+      telegram: telegramId,
+    });
+
+    if (existingLink) {
+      this.bot.sendMessage(
+        telegramId,
+        this.translator.translate(
+          'telegram.message.already_subscribed',
+          existingLink.language ?? LANGUAGES.en,
+        ),
+      );
+      return;
+    }
+
     await this.settingsModel.updateOne(
       {
         akey: user.akey,
@@ -131,23 +147,10 @@ export class TelegramService {
 
   private async sendSubscriptionMessage(
     telegramId: number,
-    token?: string,
+    akey?: string,
   ): Promise<void> {
-    const user = await this.retrieveUser(telegramId);
-
-    if (user) {
-      this.bot.sendMessage(
-        telegramId,
-        this.translator.translate(
-          'telegram.message.already_subscribed',
-          user.language,
-        ),
-      );
-      return;
-    }
-
-    if (token) {
-      await this.linkViaToken(telegramId, token);
+    if (akey) {
+      await this.linkViaToken(telegramId, akey);
       return;
     }
 
@@ -174,7 +177,7 @@ export class TelegramService {
       return;
     }
 
-    await this.settingsModel.updateOne(
+    await this.settingsModel.updateMany(
       {
         telegram: telegramId,
       },
