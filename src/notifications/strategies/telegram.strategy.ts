@@ -4,12 +4,16 @@ import { Sync } from '../../logs/schemas/sync.schema';
 import { NOTIFICATION_EVENT } from '../../notifications/entities/notification-event.entity';
 import { SettingDto } from '../../settings/dto/setting.dto';
 import { LANGUAGES } from '../../settings/entities/language.entity';
-import { TelegramService } from './telegram.service';
 import { StrategyInterface } from './strategy.interface';
+import { TranslatorService } from '../../translator/translator.service';
+import { TelegramService } from './telegram.service';
 
 @Injectable()
 export class TelegramStrategy implements StrategyInterface {
-  constructor(private readonly service: TelegramService) {}
+  constructor(
+    private readonly service: TelegramService,
+    private readonly translator: TranslatorService,
+  ) {}
   sendIfApplicable(event: NOTIFICATION_EVENT, settings: SettingDto, log: Log, sync: Sync): void {
     const receiver = settings.telegram;
 
@@ -25,7 +29,7 @@ export class TelegramStrategy implements StrategyInterface {
   private sendSocThresholdReachedMessage(receiver: number, language: LANGUAGES, sync: Sync) {
     const soc = sync.socDisplay || sync.socBMS;
 
-    const message = this.service.translator.translate(
+    const message = this.translator.translate(
       'telegram.message.threshold_reached',
       language,
       { soc },

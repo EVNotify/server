@@ -1,4 +1,16 @@
 {
   "email_subject_threshold_reached": "Gewünschter Ladezustand mit {{soc}}% erreicht",
-  "telegram.message.threshold_reached": "Der gewünschte Ladezustand von {{soc}}% wurde erreicht"
+  "telegram.message.start": "Willkommen beim EVNotify Bot! 👋\n\nDieser Bot hilft dir, den Batteriestatus deines Elektrofahrzeugs zu verfolgen und Benachrichtigungen zu erhalten.\n\nVerwende /help für verfügbare Befehle.",
+  "telegram.message.error": "❌ Fehler: Deine Anfrage konnte nicht verarbeitet werden. Bitte versuche es erneut oder verwende /help für Hilfe.",
+  "telegram.message.subscribe": "Um dein Konto zu verbinden, sende mir bitte dein Authentifizierungs-Token:\n\nDu findest dein Token in den App-Einstellungen.",
+  "telegram.message.subscribed": "✅ Konto erfolgreich verbunden! Du wirst ab sofort Benachrichtigungen und Updates erhalten.",
+  "telegram.message.already_subscribed": "ℹ️ Du bist bereits für Benachrichtigungen abonniert. Deine Einstellungen wurden gespeichert. Verwende /unsubscribe, um dich abzumelden.",
+  "telegram.message.unsubscribed": "👋 Du hast dich abgemeldet. Du wirst keine Benachrichtigungen mehr erhalten.",
+  "telegram.message.help": "📖 Verfügbare Befehle:\n\n/start - Willkommensnachricht anzeigen\n/help - Diese Hilfe anzeigen\n/subscribe - EVNotify-Konto verbinden\n/unsubscribe - Benachrichtigungen deaktivieren\n/soc - Aktuellen Ladezustand überprüfen\n/location - Letzten bekannten Fahrzeugort anzeigen\n/extended - Detaillierte Batterieinformationen abrufen\n/all - Alle verfügbaren Informationen erhalten",
+  "telegram.message.soc_info": "🔋 Ladezustand (SoC)\n\nAktuell: {{soc}}%\nZuletzt aktualisiert: {{updatedAt}}",
+  "telegram.message.location_info": "📍 Fahrzeugstandort\n\nZuletzt aufgezeichnete Position auf der Karte angezeigt.\nZuletzt aktualisiert: {{updatedAt}}",
+  "telegram.message.extended_info": "⚡ Erweiterte Batterieinformationen\n\nGesundheitszustand: {{soh}}%\nAufladen: {{charging}}\n\n🔌 Spannungen:\nHilfsbatterie: {{auxBatteryVoltage}}V\nGleichstrombatterie: {{dcBatteryVoltage}}V\n\n⚡ Strom & Leistung:\nGleichstrom: {{dcBatteryCurrent}}A\nGleichstromleistung: {{dcBatteryPower}}kW\n\n🌡️ Temperatur:\nMin: {{batteryMinTemperature}}°C\nMax: {{batteryMaxTemperature}}°C\nEinlass: {{batteryInletTemperature}}°C\n\nKilometerstand: {{odo}} km\n\nZuletzt aktualisiert: {{updatedAt}}",
+  "telegram.message.threshold_reached": "Der gewünschte Ladezustand von {{soc}}% wurde erreicht",
+  "yes": "Ja",
+  "no": "Nein"
 }

@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { LANGUAGES } from "src/settings/entities/language.entity";
+import { LANGUAGES } from "../settings/entities/language.entity";
 import Handlebars from "handlebars";
 
 @Injectable()

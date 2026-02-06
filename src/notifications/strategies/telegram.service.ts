@@ -12,14 +12,13 @@ import { TelegramUserDto } from '../dto/telegram-user.dto';
 @Injectable()
 export class TelegramService {
   public readonly bot: TelegramBot;
-  public readonly translator: TranslatorService;
 
   constructor(
     private readonly logsService: LogsService,
+    private readonly translator: TranslatorService,
     @InjectModel(Settings.name) private settingsModel: Model<Settings>,
     @InjectModel(Account.name) private accountModel: Model<Account>,
   ) {
-    this.translator = new TranslatorService();
     this.bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
     this.bot.onText(/\/start\W*(\w+)?/i, (msg, match) =>
@@ -121,6 +120,7 @@ export class TelegramService {
           telegram: telegramId,
         },
       },
+      { upsert: true },
     );
 
     this.bot.sendMessage(
@@ -285,6 +285,8 @@ export class TelegramService {
           batteryMinTemperature: lastSync.batteryMinTemperature,
           batteryMaxTemperature: lastSync.batteryMaxTemperature,
           batteryInletTemperature: lastSync.batteryInletTemperature,
+          odo: lastSync.odo,
+          updatedAt: lastSync.updatedAt,
         },
       ),
     );
