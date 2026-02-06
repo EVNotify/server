@@ -33,22 +33,24 @@ export class TelegramService {
       this.sendSubscriptionMessage(msg.chat.id, match[1]),
     );
 
-    this.bot.onText(/unsubscribe/i, (msg) =>
-      this.sendUnsubscriptionMessage(msg.chat.id),
+    this.bot.onText(/\/unsubscribe\W*(\w+)?/i, (msg, match) =>
+      this.sendUnsubscriptionMessage(msg.chat.id, match[1]),
     );
     this.bot.onText(/\/soc\W*(\w+)?/i, (msg, match) =>
       this.sendSoCMessage(msg.chat.id, match[1]),
     );
 
-    this.bot.onText(/location/i, (msg) =>
-      this.sendLocationMessage(msg.chat.id),
+    this.bot.onText(/\/location\W*(\w+)?/i, (msg, match) =>
+      this.sendLocationMessage(msg.chat.id, match[1]),
     );
 
-    this.bot.onText(/extended/i, (msg) =>
-      this.sendExtendedMessage(msg.chat.id),
+    this.bot.onText(/\/extended\W*(\w+)?/i, (msg, match) =>
+      this.sendExtendedMessage(msg.chat.id, match[1]),
     );
 
-    this.bot.onText(/all/i, (msg) => this.sendCombinedMessage(msg.chat.id));
+    this.bot.onText(/\/all\W*(\w+)?/i, (msg, match) =>
+      this.sendCombinedMessage(msg.chat.id, match[1]),
+    );
 
     if (this.bot.isPolling()) {
       return;
@@ -169,18 +171,25 @@ export class TelegramService {
     });
   }
 
-  private async sendUnsubscriptionMessage(telegramId: number): Promise<void> {
-    const user = await this.retrieveUser(telegramId);
+  private async sendUnsubscriptionMessage(telegramId: number, akey: string = null): Promise<void> {
+    const user = await this.retrieveUser(telegramId, akey);
 
     if (!user) {
       this.sendErrorMessage(telegramId);
       return;
     }
 
+    const query = akey
+      ? {
+          telegram: telegramId,
+          akey,
+        }
+      : {
+          telegram: telegramId,
+        };
+
     await this.settingsModel.updateMany(
-      {
-        telegram: telegramId,
-      },
+      query,
       {
         $set: {
           telegram: null,
@@ -232,8 +241,8 @@ export class TelegramService {
     );
   }
 
-  private async sendLocationMessage(telegramId: number): Promise<void> {
-    const user = await this.retrieveUser(telegramId);
+  private async sendLocationMessage(telegramId: number, akey: string = null): Promise<void> {
+    const user = await this.retrieveUser(telegramId, akey);
 
     if (!user) {
       this.sendErrorMessage(telegramId);
@@ -260,8 +269,8 @@ export class TelegramService {
     );
   }
 
-  private async sendExtendedMessage(telegramId: number): Promise<void> {
-    const user = await this.retrieveUser(telegramId);
+  private async sendExtendedMessage(telegramId: number, akey: string = null): Promise<void> {
+    const user = await this.retrieveUser(telegramId, akey);
 
     if (!user) {
       this.sendErrorMessage(telegramId);
@@ -295,9 +304,9 @@ export class TelegramService {
     );
   }
 
-  private sendCombinedMessage(telegramId: number): void {
-    this.sendSoCMessage(telegramId);
-    this.sendExtendedMessage(telegramId);
-    this.sendLocationMessage(telegramId);
+  private sendCombinedMessage(telegramId: number, akey: string = null): void {
+    this.sendSoCMessage(telegramId, akey);
+    this.sendExtendedMessage(telegramId, akey);
+    this.sendLocationMessage(telegramId, akey);
   }
 }
