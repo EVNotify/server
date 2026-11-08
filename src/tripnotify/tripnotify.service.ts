@@ -35,6 +35,7 @@ export class TripNotifyService {
   }
 
   async findAccessibleByCode(code: string): Promise<Trip> {
+    const now = new Date();
     const trip = await this.tripModel.findOne({
       $and: [
         { code },
@@ -43,7 +44,7 @@ export class TripNotifyService {
             { accessibleAfterEnd: true },
             {
               accessibleAfterEnd: false,
-              endDate: { $lte: new Date() },
+              endDate: { $gt: now },
             },
           ],
         },
@@ -54,7 +55,7 @@ export class TripNotifyService {
       throw new TripNotExistsException();
     }
 
-    if (trip.startDate > new Date()) {
+    if (trip.startDate > now) {
       throw new TripNotStartedException(trip.startDate);
     }
 
