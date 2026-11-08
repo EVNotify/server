@@ -10,9 +10,11 @@ Enforce sharing dates, active Premium, and location preferences.
 
 - List all trips belonging to the authenticated owner, independent of guest
   sharing dates and retained-access settings. Keep guest authorization unchanged.
-- Select overlapping sessions, including running sessions, and expose only samples
-  in `start <= timestamp < end`. Omit logs with no valid samples in that window.
-- Build a response-only view: clamp session dates to the share, and mark a running
+- Select sessions by their sample timestamps, including delayed uploads whose
+  server-created session dates do not overlap the share. Safely convert stored
+  dates and timestamp strings; omit logs with no valid samples in the window.
+- Build a response-only view: expand recorded session bounds to include selected
+  samples, clamp dates to the share, and mark a running
   session's shared portion finished once the share ends. Leave stored logs intact.
 - Recalculate partial-session SOC/counter endpoints, energy, averages, and distance
   from sorted in-window samples. Preserve valid zeros, omit insufficient or reset
@@ -20,6 +22,8 @@ Enforce sharing dates, active Premium, and location preferences.
   stored measurements for fully contained sessions. Omit aggregate totals if any
   contributing session lacks the required data; display unavailable values as
   "–" on the website.
+- Classify unknown sessions with zero battery power and a finite average speed
+  as driving; preserve zero measurements and explicit session types.
 - Share the battery-field allowlist between HTTP history and live updates so
   mixed telemetry cannot expose location when location sharing is disabled.
 - Require `auth: { code: string }` in the Socket.IO handshake. Authorize through
@@ -34,7 +38,8 @@ Enforce sharing dates, active Premium, and location preferences.
   separately from trip-loading errors; clear only the live error on reconnection.
 - Before every broadcast, revalidate the share and Premium. Suppress updates on
   authorization failure, deletion, or database errors. Live access requires
-  `startDate <= now < endDate`, even when historical access is retained.
+  `startDate <= now < endDate`, even when historical access is retained. Each
+  sample also needs a valid timestamp in `startDate <= timestamp < endDate`.
 - For location-disabled shares, copy only timestamp and explicitly allowed
   battery/charging telemetry, including temperature readings. Exclude coordinates,
   altitude, accuracy, speed, odometer, and unknown fields. Never modify the source
@@ -52,12 +57,19 @@ Use isolated MongoDB, real Premium queries, and real Socket.IO clients. Add
 - Cover both overlap boundaries, running and spanning sessions, exact endpoint
   timestamps, invalid/unsorted samples, empty windows, zero readings, counter
   resets, partial totals, and stored-log immutability.
+- Ingest delayed samples through the real sync service after share expiry and
+  verify retained history, bounded dates, and running/finished logs. Cover stored
+  dates, timestamp strings, malformed histories, and account isolation.
+- Check unknown driving sessions with zero battery power and explicit zero-power
+  charging sessions without losing zero measurements.
 - Check website formatting for zero and unavailable totals, including charge-stop
   summaries, alongside socket handshake and error-handling smoke checks.
 - Reject unauthorized handshakes; verify exact start/end boundaries and both
   historical-access settings.
 - Verify room isolation with catch-all listeners and multiple clients per share.
 - Verify the existing event and payload structure for authorized clients.
+- Verify sample timestamps independently of upload time, including exact start
+  and end boundaries, delayed samples, and missing/invalid timestamps.
 - Verify mixed GPS/battery payloads are filtered without modifying the input.
 - Verify changes to location preferences, Premium expiry, deletion, and trip
   expiry take effect for already-connected clients.

@@ -119,9 +119,16 @@ export function sharedLog(
     !log.endDate ||
     log.endDate.getTime() >= end ||
     samples.length !== raw.length;
-  view.startDate = new Date(Math.max(log.startDate.getTime(), start));
+  // Server-created session dates can disagree with delayed sample times.
+  const firstSample = new Date(samples[0].timestamp).getTime();
+  const lastSample = new Date(samples[samples.length - 1].timestamp).getTime();
+  view.startDate = new Date(
+    Math.max(Math.min(log.startDate.getTime(), firstSample), start),
+  );
   if (log.endDate) {
-    view.endDate = new Date(Math.min(log.endDate.getTime(), end));
+    view.endDate = new Date(
+      Math.min(Math.max(log.endDate.getTime(), lastSample), end),
+    );
   } else if (now.getTime() >= end) {
     view.endDate = new Date(end);
     view.status = STATUS.FINISHED;

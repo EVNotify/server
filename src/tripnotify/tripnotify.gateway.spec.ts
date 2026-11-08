@@ -412,6 +412,56 @@ describe('TripNotify socket privacy', () => {
     expect(updates).toHaveLength(1);
   });
 
+  it.each([
+    {
+      name: 'before the share',
+      timestamp: new Date(start.getTime() - 1).toISOString(),
+      delivered: false,
+    },
+    { name: 'at the start', timestamp: start.toISOString(), delivered: true },
+    {
+      name: 'inside the share',
+      timestamp: during.toISOString(),
+      delivered: true,
+    },
+    {
+      name: 'just before the end',
+      timestamp: new Date(end.getTime() - 1).toISOString(),
+      delivered: true,
+    },
+    { name: 'at the end', timestamp: end.toISOString(), delivered: false },
+    {
+      name: 'after the share',
+      timestamp: new Date(end.getTime() + 1).toISOString(),
+      delivered: false,
+    },
+    { name: 'invalid', timestamp: 'invalid', delivered: false },
+    { name: 'empty', timestamp: '', delivered: false },
+    { name: 'missing', timestamp: undefined, delivered: false },
+    { name: 'null', timestamp: null, delivered: false },
+  ])(
+    'checks sample time when the timestamp is $name',
+    async ({ timestamp, delivered }) => {
+      const client = await connect();
+      const updates = watchUpdates(client);
+      const data = { ...sync(), timestamp };
+
+      await publish(data);
+      await flush(client);
+
+      expect(updates).toEqual(
+        delivered
+          ? [
+              {
+                event: 'route-update:expire',
+                payload: { logId: logId.toString(), data },
+              },
+            ]
+          : [],
+      );
+    },
+  );
+
   it('rechecks deletion after active trips have been discovered', async () => {
     const client = await connect();
     const updates = watchUpdates(client);

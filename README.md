@@ -50,8 +50,10 @@ Owners can list and manage all their own trips, including scheduled and expired
 ones. Guest access still follows each share's dates, Premium status, and access
 after expiry setting.
 
-Shared history includes driving and charging sessions that overlap the sharing
-window, with samples limited to `start <= timestamp < end`. Partial-session
+Shared history selects sessions by their recorded sample timestamps, including
+delayed uploads created after the share ends when historical access is retained.
+Samples are limited to `start <= timestamp < end`. Displayed session dates include
+the selected samples and are clamped to the sharing window. Partial-session
 measurements are recalculated from those samples without changing the stored
 log. Missing measurements are omitted from the response, and the website shows
 "–" instead of a misleading zero. Trip totals are omitted when any contributing
@@ -77,7 +79,9 @@ socket.on('connect_error', (error) => {
 
 Each connection receives only its authorized share's updates. Reconnect with a new
 connection to switch shares. Live delivery requires an active trip and active
-owner Premium; permissions are checked again before each update. When location
+owner Premium; permissions are checked again before each update. Each sample must
+also have a valid timestamp within `start <= timestamp < end`; uploading old data
+during an active share does not authorize sharing it. When location
 sharing is disabled, updates include only timestamp and allowed battery/charging
 telemetry, including temperature readings. Historical access after a trip ends
 does not extend live delivery.

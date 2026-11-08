@@ -37,19 +37,22 @@ export class TripInformationDto {
       log.type === TYPE.UNKNOWN &&
       !finite(log.averageKW) &&
       !finite(log.averageSpeed);
+    // Zero power must not override speed evidence for an unclassified drive.
+    const inferredDrive = (log: LogWithHistoryDto) =>
+      log.type === TYPE.UNKNOWN &&
+      (!finite(log.averageKW) || log.averageKW === 0) &&
+      finite(log.averageSpeed);
     const chargeLogs = this.logs.filter(
       (log) =>
         log.type === TYPE.CHARGE ||
-        (log.type === TYPE.UNKNOWN && finite(log.averageKW)) ||
+        (log.type === TYPE.UNKNOWN &&
+          finite(log.averageKW) &&
+          !inferredDrive(log)) ||
         unclassified(log),
     );
     const driveLogs = this.logs.filter(
       (log) =>
-        log.type === TYPE.DRIVE ||
-        (log.type === TYPE.UNKNOWN &&
-          !finite(log.averageKW) &&
-          finite(log.averageSpeed)) ||
-        unclassified(log),
+        log.type === TYPE.DRIVE || inferredDrive(log) || unclassified(log),
     );
 
     return new TripMetadataDto(

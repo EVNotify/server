@@ -72,6 +72,17 @@ export class TripNotifyGateway
         return;
       }
 
+      // Upload time does not authorize telemetry recorded outside the share.
+      const timestamp =
+        data.timestamp == null ? NaN : new Date(data.timestamp).getTime();
+      if (
+        !Number.isFinite(timestamp) ||
+        timestamp < trip.startDate.getTime() ||
+        timestamp >= trip.endDate.getTime()
+      ) {
+        return;
+      }
+
       this.server.to(this.room(code)).emit(`route-update:${code}`, {
         logId,
         data: sharedSync(data, trip.locationEnabled),

@@ -6,6 +6,7 @@ import { Sync } from '../../logs/schemas/sync.schema';
 import { TripInformationDto } from '../dto/trip-information.dto';
 import { Trip } from '../schemas/trip.schema';
 import { sharedLog } from './shared-log';
+import { LogWithHistoryDto } from '../dto/log-with-history.dto';
 
 describe('shared log projection', () => {
   const start = new Date('2030-01-01T12:00:00Z');
@@ -133,6 +134,34 @@ describe('shared log projection', () => {
       averageKW: 999,
     });
   });
+
+  it.each([
+    {
+      startDate: new Date('2030-01-01T14:00:00Z'),
+      endDate: new Date('2030-01-01T15:00:00Z'),
+    },
+    {
+      startDate: new Date('2030-01-01T10:00:00Z'),
+      endDate: new Date('2030-01-01T11:00:00Z'),
+    },
+  ])(
+    'keeps shared dates consistent with sample times despite recorded dates %j',
+    (dates) => {
+      const first = new Date('2030-01-01T12:10:00Z');
+      const last = new Date('2030-01-01T12:20:00Z');
+      const history = [sample(first, { cec: 10 }), sample(last, { cec: 12 })];
+      const log = Object.freeze(source(dates));
+      const view = sharedLog(log, history, trip, end);
+
+      expect(view.startDate.getTime()).toBeLessThanOrEqual(first.getTime());
+      expect(view.startDate.getTime()).toBeGreaterThanOrEqual(start.getTime());
+      expect(view.endDate.getTime()).toBeGreaterThanOrEqual(last.getTime());
+      expect(view.endDate.getTime()).toBeLessThanOrEqual(end.getTime());
+      expect(view.rechargedKWh).toBe(2);
+      expect(log.startDate).toEqual(dates.startDate);
+      expect(log.endDate).toEqual(dates.endDate);
+    },
+  );
 
   it('does not turn insufficient data into zero or copy full-session values', () => {
     const view = sharedLog(
@@ -281,6 +310,55 @@ describe('shared log projection', () => {
     expect(totals.avgChargeSpeed).toBeUndefined();
     expect(totals.avgDriveSpeed).toBeUndefined();
   });
+
+  it.each([0, 60])(
+    'classifies unknown sessions with zero power and speed %s as driving',
+    (averageSpeed) => {
+      const log = new LogWithHistoryDto(
+        source({
+          type: TYPE.UNKNOWN,
+          averageKW: 0,
+          averageSpeed,
+        }),
+      );
+      const totals = new TripInformationDto([log]).metadata;
+      expect(totals.avgDriveSpeed).toBe(averageSpeed);
+      expect(totals.avgChargeSpeed).toBeUndefined();
+    },
+  );
+
+  it.each([
+    {
+      type: TYPE.CHARGE,
+      averageKW: 0,
+      averageSpeed: 60,
+      expected: { avgChargeSpeed: 0, avgDriveSpeed: undefined },
+    },
+    {
+      type: TYPE.DRIVE,
+      averageKW: 10,
+      averageSpeed: 0,
+      expected: { avgChargeSpeed: undefined, avgDriveSpeed: 0 },
+    },
+    {
+      type: TYPE.UNKNOWN,
+      averageKW: -10,
+      averageSpeed: 60,
+      expected: { avgChargeSpeed: 10, avgDriveSpeed: undefined },
+    },
+    {
+      type: TYPE.UNKNOWN,
+      averageKW: 0,
+      averageSpeed: undefined,
+      expected: { avgChargeSpeed: 0, avgDriveSpeed: undefined },
+    },
+  ])(
+    'preserves classification of $type with power $averageKW and speed $averageSpeed',
+    ({ expected, ...fields }) => {
+      const log = new LogWithHistoryDto(source(fields));
+      expect(new TripInformationDto([log]).metadata).toMatchObject(expected);
+    },
+  );
 
   it('does not present an incomplete sum or mean as a complete trip total', () => {
     const known = sharedLog(

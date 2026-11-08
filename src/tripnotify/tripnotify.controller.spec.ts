@@ -337,6 +337,118 @@ describe('TripNotify guest access', () => {
   });
 
   describe('shared history windows', () => {
+    it.each([STATUS.RUNNING, STATUS.FINISHED])(
+      'includes delayed telemetry ingested after expiry in a %s log',
+      async (status) => {
+        await logs.deleteMany({});
+        const uploadedAt = new Date(end.getTime() + 1000);
+        freezeAt(uploadedAt);
+        const samples = [
+          { timestamp: new Date(start.getTime() - 1).toISOString(), cec: 0 },
+          { timestamp: start.toISOString(), cec: 100 },
+          { timestamp: during.toISOString(), cec: 110 },
+          { timestamp: end.toISOString(), cec: 999 },
+        ];
+        for (const sample of samples) {
+          await logsService.syncData(owner, {
+            ...sample,
+            charging: true,
+            dcBatteryPower: -20,
+          } as Parameters<LogsService['syncData']>[1]);
+        }
+        const log = await logs.findOne({ akey: owner });
+        expect(log.startDate).toEqual(uploadedAt);
+        if (status === STATUS.FINISHED) {
+          await logs.updateOne(
+            { _id: log._id },
+            { status, endDate: uploadedAt },
+          );
+        }
+        const before = await logs.findById(log._id).lean();
+
+        const response = await request(app.getHttpServer())
+          .get('/trips/retain/info')
+          .expect(200);
+
+        expect(response.body.logs).toHaveLength(1);
+        expect(response.body.logs[0]).toMatchObject({
+          id: log._id.toString(),
+          status: STATUS.FINISHED,
+          startDate: start.toISOString(),
+          endDate: end.toISOString(),
+          rechargedKWh: 10,
+          averageKW: -20,
+          history: samples.slice(1, 3).map((sample) => ({
+            ...sample,
+            charging: true,
+            dcBatteryPower: -20,
+          })),
+        });
+        expect(response.body.metadata.rechargedEnergy).toBe(10);
+        expect(await logs.findById(log._id).lean()).toEqual(before);
+        await request(app.getHttpServer())
+          .get('/trips/expire/info')
+          .expect(404);
+      },
+    );
+
+    it('uses sample dates instead of recorded session bounds and ignores malformed histories', async () => {
+      freezeAt(during);
+      await logs.deleteMany({});
+      const log = await logs.create({
+        akey: owner,
+        startDate: new Date(start.getTime() - 120000),
+        endDate: new Date(start.getTime() - 60000),
+        status: STATUS.FINISHED,
+        history: [
+          { timestamp: '2030-01-01T13:00:00+01:00', socDisplay: 80 },
+          { timestamp: during, socDisplay: 70 },
+          { timestamp: 'invalid' },
+          { timestamp: null },
+          {},
+        ],
+      });
+      const unrelated = {
+        akey: owner,
+        startDate: start,
+        endDate: end,
+        status: STATUS.FINISHED,
+      };
+      await logs.collection.insertMany([
+        { ...unrelated, history: null },
+        { ...unrelated },
+        { ...unrelated, history: [] },
+        { ...unrelated, history: [null, {}, { timestamp: 'invalid' }] },
+        {
+          ...unrelated,
+          history: [
+            { timestamp: new Date(start.getTime() - 1) },
+            { timestamp: end },
+          ],
+        },
+        { ...unrelated, akey: 'fedcba', history: [batteryEntry] },
+      ]);
+      const before = await logs.findById(log._id).lean();
+
+      const response = await request(app.getHttpServer())
+        .get('/trips/expire/info')
+        .expect(200);
+
+      expect(response.body.logs).toHaveLength(1);
+      expect(response.body.logs[0]).toMatchObject({
+        id: log._id.toString(),
+        startDate: start.toISOString(),
+        endDate: during.toISOString(),
+        startSOC: 80,
+        endSOC: 70,
+        history: [
+          { timestamp: '2030-01-01T13:00:00+01:00', socDisplay: 80 },
+          { timestamp: during.toISOString(), socDisplay: 70 },
+        ],
+      });
+      expect(await logs.findById(log._id).lean()).toEqual(before);
+    });
+
     it.each([
       {
         name: 'starts before the share',
