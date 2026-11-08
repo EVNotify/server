@@ -1,3 +1,16 @@
 {
-  "email_subject_threshold_reached": "Desired state of charge reached with {{soc}}%"
+  "email_subject_threshold_reached": "Desired state of charge reached with {{soc}}%",
+  "telegram.message.start": "Welcome to EVNotify Bot! 👋\n\nThis bot helps you track your electric vehicle's battery status and receive notifications.\n\nUse /help for available commands.",
+  "telegram.message.error": "❌ Error: Unable to process your request. Please try again or use /help for assistance.",
+  "telegram.message.subscribe": "To link your account, please send me your authentication token:\n\nYou can find your token in the app settings.",
+  "telegram.message.subscribed": "✅ Account successfully linked! You will now receive battery notifications and updates.",
+  "telegram.message.already_subscribed": "ℹ️ You're already subscribed to notifications. Your settings have been saved. Use /unsubscribe to stop receiving notifications.",
+  "telegram.message.unsubscribed": "👋 You have been unsubscribed. You will no longer receive notifications.",
+  "telegram.message.help": "📖 Available Commands:\n\n/start - Display welcome message\n/help - Show this help message\n/subscribe - Link your EVNotify account\n/unsubscribe - Remove notification subscription\n/soc - Check current state of charge\n/location - View vehicle's last known location\n/extended - Get detailed battery information\n/all - Receive all available information",
+  "telegram.message.soc_info": "🔋 State of Charge (SoC)\n\nCurrent: {{soc}}%\nLast Updated: {{updatedAt}}",
+  "telegram.message.location_info": "📍 Vehicle Location\n\nLast recorded position shown on map.\nLast Updated: {{updatedAt}}",
+  "telegram.message.extended_info": "⚡ Advanced Battery Information\n\nState of Health: {{soh}}%\nCharging: {{charging}}\n\n🔌 Voltages:\nAux Battery: {{auxBatteryVoltage}}V\nDC Battery: {{dcBatteryVoltage}}V\n\n⚡ Current & Power:\nDC Current: {{dcBatteryCurrent}}A\nDC Power: {{dcBatteryPower}}kW\n\n🌡️ Temperature:\nMin: {{batteryMinTemperature}}°C\nMax: {{batteryMaxTemperature}}°C\nInlet: {{batteryInletTemperature}}°C\n\nOdometer: {{odo}} km\n\nLast Updated: {{updatedAt}}",
+  "telegram.message.threshold_reached": "Your desired state of charge of {{soc}}% has been achieved",
+  "yes": "Yes",
+  "no": "No"
 }

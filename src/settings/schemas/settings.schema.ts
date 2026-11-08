@@ -47,6 +47,9 @@ export class Settings {
 
   @Prop()
   email: string;
+
+  @Prop()
+  telegram: number;
 }
 
 export const SettingsSchema = SchemaFactory.createForClass(Settings);

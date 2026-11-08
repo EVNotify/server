@@ -41,7 +41,7 @@ export class EmailStrategy implements StrategyInterface {
       data = { soc: sync.socDisplay || sync.socBMS, akey: log.akey, token };
     }
 
-    const subject = this.translator.translate('email_subject_' + event.toLowerCase(), settings.language ?? LANGUAGES.en, data);
+    const subject = this.translator.translate('email_subject_' + event.toLowerCase(), settings.language, data);
 
     this.resendInstance.emails.send({
       from: process.env.MAIL_SENDER_ADDRESS,

@@ -1,15 +1,18 @@
 import { Module } from '@nestjs/common';
 import { NotificationHandler } from './handler/notifications.handler';
 import { EmailStrategy } from './strategies/email.strategy';
-import { SettingsService } from 'src/settings/settings.service';
+import { SettingsService } from '../settings/settings.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Settings, SettingsSchema } from 'src/settings/schemas/settings.schema';
-import { Log, LogSchema } from 'src/logs/schemas/log.schema';
+import { Settings, SettingsSchema } from '../settings/schemas/settings.schema';
+import { Log, LogSchema } from '../logs/schemas/log.schema';
 import { TemplateCacheService } from './templates/template-cache.service';
-import { TranslatorService } from 'src/translator/translator.service';
+import { TranslatorService } from '../translator/translator.service';
 import { NotificationController } from './notification.controller';
-import { AccountService } from 'src/account/account.service';
-import { Account, AccountSchema } from 'src/account/schemas/account.schema';
+import { AccountService } from '../account/account.service';
+import { Account, AccountSchema } from '../account/schemas/account.schema';
+import { TelegramStrategy } from './strategies/telegram.strategy';
+import { TelegramService } from './strategies/telegram.service';
+import { LogsModule } from '../logs/logs.module';
 
 @Module({
   imports: [
@@ -22,14 +25,17 @@ import { Account, AccountSchema } from 'src/account/schemas/account.schema';
     MongooseModule.forFeature([
       { name: Log.name, schema: LogSchema },
     ]),
+    LogsModule,
   ],
   controllers: [NotificationController],
   providers: [
     NotificationHandler,
     EmailStrategy,
+    TelegramStrategy,
     AccountService,
     SettingsService,
     TemplateCacheService,
+    TelegramService,
     TranslatorService,
   ],
   exports: [],

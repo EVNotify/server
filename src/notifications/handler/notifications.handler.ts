@@ -10,6 +10,7 @@ import { ThresholdReachedHandler } from "./threshold-reached.handler";
 import { EmailStrategy } from "../strategies/email.strategy";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
+import { TelegramStrategy } from "../strategies/telegram.strategy";
 
 @Injectable()
 export class NotificationHandler {
@@ -17,6 +18,7 @@ export class NotificationHandler {
     @InjectModel(Log.name) private logModel: Model<Log>,
     private readonly settingsService: SettingsService,
     private readonly emailStrategy: EmailStrategy,
+    private readonly telegramStrategy: TelegramStrategy,
   ) { }
 
   private async sendNotificationIfApplicable(
@@ -52,6 +54,7 @@ export class NotificationHandler {
       }
       
       this.emailStrategy.sendIfApplicable(event, settings, log, sync);
+      this.telegramStrategy.sendIfApplicable(event, settings, log, sync);
     }
   }
 
