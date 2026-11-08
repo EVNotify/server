@@ -1,13 +1,27 @@
-# TripNotify socket privacy fix
+# TripNotify sharing fixes
 
 ## Summary
 
-Prevent live trip updates from reaching unauthorized clients. Enforce sharing
-dates, active Premium, and location preferences for socket delivery. Keep
-owner-list and overlapping-history fixes separate.
+Prevent live trip updates from reaching unauthorized clients, restore the owner's
+complete trip list, and include history from sessions crossing sharing boundaries.
+Enforce sharing dates, active Premium, and location preferences.
 
 ## Implementation
 
+- List all trips belonging to the authenticated owner, independent of guest
+  sharing dates and retained-access settings. Keep guest authorization unchanged.
+- Select overlapping sessions, including running sessions, and expose only samples
+  in `start <= timestamp < end`. Omit logs with no valid samples in that window.
+- Build a response-only view: clamp session dates to the share, and mark a running
+  session's shared portion finished once the share ends. Leave stored logs intact.
+- Recalculate partial-session SOC/counter endpoints, energy, averages, and distance
+  from sorted in-window samples. Preserve valid zeros, omit insufficient or reset
+  counter measurements, and do not interpolate across the boundaries. Preserve
+  stored measurements for fully contained sessions. Omit aggregate totals if any
+  contributing session lacks the required data; display unavailable values as
+  "–" on the website.
+- Share the battery-field allowlist between HTTP history and live updates so
+  mixed telemetry cannot expose location when location sharing is disabled.
 - Require `auth: { code: string }` in the Socket.IO handshake. Authorize through
   `TripNotifyService.findAccessibleByCode()` before accepting the connection.
   Reject missing, malformed, unknown, or inaccessible codes with a generic
@@ -33,6 +47,13 @@ owner-list and overlapping-history fixes separate.
 Use isolated MongoDB, real Premium queries, and real Socket.IO clients. Add
 `socket.io-client` as a development dependency.
 
+- Verify all owner trip states are listed while account isolation and
+  authentication remain enforced.
+- Cover both overlap boundaries, running and spanning sessions, exact endpoint
+  timestamps, invalid/unsorted samples, empty windows, zero readings, counter
+  resets, partial totals, and stored-log immutability.
+- Check website formatting for zero and unavailable totals, including charge-stop
+  summaries, alongside socket handshake and error-handling smoke checks.
 - Reject unauthorized handshakes; verify exact start/end boundaries and both
   historical-access settings.
 - Verify room isolation with catch-all listeners and multiple clients per share.

@@ -195,18 +195,26 @@
       endEl.textContent = info.end ? new Date(info.end).toLocaleString() : "–";
     }
 
+    function formatMetric(value, unit, decimals) {
+      if (!Number.isFinite(value)) {
+        return "–";
+      }
+      return `${decimals === undefined ? value : value.toFixed(decimals)} ${unit}`;
+    }
+
     function updateSidebarMetadataAndChargingStops(info) {
-      consumedEl.textContent = info.metadata.consumedEnergy ? info.metadata.consumedEnergy + ' kWh' : "–";
-      chargedEl.textContent = info.metadata.rechargedEnergy ? info.metadata.rechargedEnergy + ' kWh' : "–";
-      avgSpeedEl.textContent = info.metadata.avgDriveSpeed ? info.metadata.avgDriveSpeed + " km/h" : "–";
-      avgChargeEl.textContent = info.metadata.avgChargeSpeed ? info.metadata.avgChargeSpeed + " kW" : "–";
+      consumedEl.textContent = formatMetric(info.metadata.consumedEnergy, 'kWh');
+      chargedEl.textContent = formatMetric(info.metadata.rechargedEnergy, 'kWh');
+      avgSpeedEl.textContent = formatMetric(info.metadata.avgDriveSpeed, 'km/h');
+      avgChargeEl.textContent = formatMetric(info.metadata.avgChargeSpeed, 'kW');
 
       stopsEl.innerHTML = '';
       (info.logs || []).forEach(((log) => {
         if (log.type === 'charge') {
           const li = document.createElement("li");
           
-          const text = `${new Date(log.startDate).toLocaleDateString()}<br> ${new Date(log.startDate).toLocaleTimeString()} ${log.endDate ? '- ' + new Date(log.endDate).toLocaleTimeString() : ' (still active)'} <br> (charged: ${(log.rechargedKWh || 0).toFixed(2)} kWh, ⌀ ${Math.abs(log.averageKW || 0).toFixed(2)} kW)`;
+          const averageKW = Number.isFinite(log.averageKW) ? Math.abs(log.averageKW) : undefined;
+          const text = `${new Date(log.startDate).toLocaleDateString()}<br> ${new Date(log.startDate).toLocaleTimeString()} ${log.endDate ? '- ' + new Date(log.endDate).toLocaleTimeString() : ' (still active)'} <br> (charged: ${formatMetric(log.rechargedKWh, 'kWh', 2)}, ⌀ ${formatMetric(averageKW, 'kW', 2)})`;
 
           li.innerHTML = text;
           stopsEl.appendChild(li);

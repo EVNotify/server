@@ -18,20 +18,8 @@ export class TripNotifyService {
   ) { }
 
   async findAccessibleByAkey(akey: string): Promise<Trip[]> {
-    return await this.tripModel.find({
-      $and: [
-        { akey },
-        {
-          $or: [
-            { accessibleAfterEnd: true },
-            {
-              accessibleAfterEnd: false,
-              endDate: { $lte: new Date() },
-            },
-          ],
-        },
-      ],
-    });
+    // Owners manage every share; guest access rules are enforced separately.
+    return await this.tripModel.find({ akey });
   }
 
   async findAccessibleByCode(code: string): Promise<Trip> {

@@ -1,7 +1,28 @@
-import { LogWithHistoryDto } from "./log-with-history.dto";
-import { Expose } from "class-transformer";
-import { TripMetadataDto } from "./trip-metadata.dto";
-import { TYPE } from "src/logs/entities/type.entity";
+import { LogWithHistoryDto } from './log-with-history.dto';
+import { Expose } from 'class-transformer';
+import { TripMetadataDto } from './trip-metadata.dto';
+import { TYPE } from 'src/logs/entities/type.entity';
+
+function finite(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function aggregate(
+  logs: LogWithHistoryDto[],
+  field: 'dischargedKWh' | 'rechargedKWh' | 'averageSpeed' | 'averageKW',
+  average = false,
+): number | undefined {
+  // Missing measurements are unknown, not zero. Do not label partial sums as totals.
+  if (!logs.length || logs.some((log) => !finite(log[field]))) {
+    return undefined;
+  }
+  const sum = logs.reduce(
+    (total, log) =>
+      total + (field === 'averageKW' ? Math.abs(log[field]) : log[field]),
+    0,
+  );
+  return Number((average ? sum / logs.length : sum).toFixed(2));
+}
 
 export class TripInformationDto {
   constructor(logs: LogWithHistoryDto[]) {
@@ -12,34 +33,30 @@ export class TripInformationDto {
 
   @Expose()
   get metadata(): TripMetadataDto {
-    let consumedEnergy = 0;
-    let rechargedEnergy = 0;
-    let avgDriveSpeed = 0;
-    let avgChargeSpeed = 0;
-    let countChargeLogs = 0;
-    let countDriveLogs = 0;
-
-    this.logs.forEach((log) => {
-      consumedEnergy += log.dischargedKWh || 0;
-      rechargedEnergy += log.rechargedKWh || 0;
-
-      if (log.type === TYPE.CHARGE || (log.type === TYPE.UNKNOWN && log.averageKW)) {
-        avgChargeSpeed += Math.abs(log.averageKW || 0);
-        countChargeLogs++;
-      } else if (log.type === TYPE.DRIVE || (log.type === TYPE.UNKNOWN && log.averageSpeed)) {
-        avgDriveSpeed += log.averageSpeed || 0;
-        countDriveLogs++;
-      }
-    });
-
-    avgDriveSpeed = countDriveLogs ? avgDriveSpeed / countDriveLogs : 0;
-    avgChargeSpeed = countChargeLogs ? avgChargeSpeed / countChargeLogs : 0;
+    const unclassified = (log: LogWithHistoryDto) =>
+      log.type === TYPE.UNKNOWN &&
+      !finite(log.averageKW) &&
+      !finite(log.averageSpeed);
+    const chargeLogs = this.logs.filter(
+      (log) =>
+        log.type === TYPE.CHARGE ||
+        (log.type === TYPE.UNKNOWN && finite(log.averageKW)) ||
+        unclassified(log),
+    );
+    const driveLogs = this.logs.filter(
+      (log) =>
+        log.type === TYPE.DRIVE ||
+        (log.type === TYPE.UNKNOWN &&
+          !finite(log.averageKW) &&
+          finite(log.averageSpeed)) ||
+        unclassified(log),
+    );
 
     return new TripMetadataDto(
-      parseFloat((consumedEnergy || 0).toFixed(2)),
-      parseFloat((rechargedEnergy || 0).toFixed(2)),
-      parseFloat((avgDriveSpeed || 0).toFixed(2)),
-      parseFloat((avgChargeSpeed || 0).toFixed(2)),
+      aggregate(this.logs, 'dischargedKWh'),
+      aggregate(this.logs, 'rechargedKWh'),
+      aggregate(driveLogs, 'averageSpeed', true),
+      aggregate(chargeLogs, 'averageKW', true),
     );
   }
 }

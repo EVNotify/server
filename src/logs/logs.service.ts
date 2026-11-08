@@ -96,15 +96,12 @@ export class LogsService {
   async findLogsWithinDateRange(akey: string, start: Date, end: Date): Promise<Log[]> {
     const query = {
       akey,
-      startDate: { $gte: start },
-      $and: [
-        {
-          $or: [
-            { endDate: { $lte: end } },
-            { endDate: null, status: STATUS.RUNNING },
-          ]
-        }
-      ]
+      startDate: { $lt: end },
+      // A finished log may contain a last sample exactly at the window start.
+      $or: [
+        { endDate: { $gte: start } },
+        { endDate: null, status: STATUS.RUNNING },
+      ],
     };
 
     return this.logModel.find(query).select('-history').sort({startDate: 'desc'});

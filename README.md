@@ -46,6 +46,19 @@ $ npm run start:prod
 
 ## TripNotify live updates
 
+Owners can list and manage all their own trips, including scheduled and expired
+ones. Guest access still follows each share's dates, Premium status, and access
+after expiry setting.
+
+Shared history includes driving and charging sessions that overlap the sharing
+window, with samples limited to `start <= timestamp < end`. Partial-session
+measurements are recalculated from those samples without changing the stored
+log. Missing measurements are omitted from the response, and the website shows
+"–" instead of a misleading zero. Trip totals are omitted when any contributing
+session lacks the necessary measurements. Energy uses the difference between
+recorded counters inside the window; values between samples or across the window
+boundaries are not estimated.
+
 The bundled website lives in `public/tripnotify/index.html` and is served at
 `/frontend/tripnotify/?code=SHARE_CODE`. It sends the required socket credentials
 and displays live connection errors separately from trip-loading errors.

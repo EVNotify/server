@@ -1,5 +1,6 @@
-import { INestApplication } from '@nestjs/common';
+import { ClassSerializerInterceptor, INestApplication } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { Reflector } from '@nestjs/core';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test } from '@nestjs/testing';
 import { randomBytes } from 'crypto';
@@ -9,6 +10,7 @@ import { AccountService } from '../account/account.service';
 import { Account, AccountSchema } from '../account/schemas/account.schema';
 import { HISTORY_TYPE } from '../logs/entities/history-type.entity';
 import { STATUS } from '../logs/entities/status.entity';
+import { TYPE } from '../logs/entities/type.entity';
 import { LogsService } from '../logs/logs.service';
 import { LastSync } from '../logs/schemas/last-sync.schema';
 import { Log, LogSchema } from '../logs/schemas/log.schema';
@@ -98,11 +100,20 @@ describe('TripNotify guest access', () => {
         { provide: TripNotifyService, useValue: service },
         { provide: LogsService, useValue: logsService },
         { provide: PremiumService, useValue: premiumService },
-        // The real AuthGuard bypasses owner authentication for @Guest routes.
-        { provide: AccountService, useValue: {} },
+        {
+          provide: AccountService,
+          useValue: {
+            async loginWithToken(akey, dto) {
+              if (!(await accounts.exists({ akey, token: dto.token }))) {
+                throw new Error('Unauthorized');
+              }
+            },
+          },
+        },
       ],
     }).compile();
     app = module.createNestApplication();
+    app.useGlobalInterceptors(new ClassSerializerInterceptor(new Reflector()));
     await app.init();
   });
 
@@ -254,7 +265,7 @@ describe('TripNotify guest access', () => {
       expect(findHistory).toHaveBeenCalledWith(
         owner,
         expect.any(String),
-        HISTORY_TYPE.BATTERY_DATA,
+        HISTORY_TYPE.ALL,
       );
       expect(response.body.logs).toHaveLength(1);
       expect(response.body.logs[0].history).toEqual([
@@ -262,6 +273,273 @@ describe('TripNotify guest access', () => {
       ]);
     },
   );
+
+  describe('owner management list', () => {
+    it('includes scheduled, active, and expired trips with either access setting', async () => {
+      freezeAt(during);
+      await accounts.updateOne({ akey: owner }, { premiumUntil: null });
+      await trips.create([
+        ...[false, true].flatMap((accessibleAfterEnd, index) => [
+          {
+            code: `old00${index}`,
+            akey: owner,
+            startDate: new Date(start.getTime() - 7200000),
+            endDate: new Date(start.getTime() - 3600000),
+            accessibleAfterEnd,
+            locationEnabled: true,
+            type: TripType.CHARGE_AND_DRIVE,
+          },
+          {
+            code: `new00${index}`,
+            akey: owner,
+            startDate: new Date(end.getTime() + 3600000),
+            endDate: new Date(end.getTime() + 7200000),
+            accessibleAfterEnd,
+            locationEnabled: true,
+            type: TripType.CHARGE_AND_DRIVE,
+          },
+        ]),
+        {
+          code: 'other1',
+          akey: 'fedcba',
+          startDate: start,
+          endDate: end,
+          accessibleAfterEnd: true,
+          locationEnabled: true,
+          type: TripType.CHARGE_AND_DRIVE,
+        },
+      ]);
+      const response = await request(app.getHttpServer())
+        .get(`/trips/${owner}/list`)
+        .set('Authorization', `${owner} ${'0'.repeat(20)}`)
+        .expect(200);
+      expect(response.body.map((trip) => trip.code).sort()).toEqual(
+        ['expire', 'retain', 'old000', 'old001', 'new000', 'new001'].sort(),
+      );
+    });
+
+    it('requires valid owner credentials', async () => {
+      await request(app.getHttpServer())
+        .get(`/trips/${owner}/list`)
+        .expect(401);
+      await request(app.getHttpServer())
+        .get(`/trips/${owner}/list`)
+        .set('Authorization', `${owner} ${'1'.repeat(20)}`)
+        .expect(401);
+    });
+
+    it('rejects an authenticated request for another owner', async () => {
+      await request(app.getHttpServer())
+        .get('/trips/fedcba/list')
+        .set('Authorization', `${owner} ${'0'.repeat(20)}`)
+        .expect(403);
+    });
+  });
+
+  describe('shared history windows', () => {
+    it.each([
+      {
+        name: 'starts before the share',
+        from: -60000,
+        to: 1800000,
+        status: STATUS.FINISHED,
+      },
+      {
+        name: 'ends after the share',
+        from: 60000,
+        to: 3660000,
+        status: STATUS.FINISHED,
+      },
+      {
+        name: 'spans the share',
+        from: -60000,
+        to: 3660000,
+        status: STATUS.FINISHED,
+      },
+      {
+        name: 'is still running from before the share',
+        from: -60000,
+        to: null,
+        status: STATUS.RUNNING,
+      },
+    ])(
+      'includes a log that $name without exposing outside samples',
+      async ({ from, to, status }) => {
+        freezeAt(new Date(end.getTime() + 1000));
+        const logStart = new Date(start.getTime() + from);
+        const logEnd = to == null ? null : new Date(start.getTime() + to);
+        const first = new Date(
+          Math.max(logStart.getTime(), start.getTime()) + 1000,
+        );
+        const last = new Date(
+          Math.min(logEnd?.getTime() ?? end.getTime(), end.getTime()) - 1000,
+        );
+        const samples = [first, last].map((timestamp) => ({
+          timestamp,
+          socDisplay: 80,
+        }));
+        if (from < 0) samples.unshift({ timestamp: logStart, socDisplay: 90 });
+        if (to == null || logEnd >= end)
+          samples.push({ timestamp: end, socDisplay: 70 });
+        const log = await logs.create({
+          akey: owner,
+          startDate: logStart,
+          endDate: logEnd,
+          status,
+          history: samples,
+        });
+        const before = await logs.findById(log._id).lean();
+        const response = await request(app.getHttpServer())
+          .get('/trips/retain/info')
+          .expect(200);
+        const shared = response.body.logs.find(
+          (entry) => entry.id === log._id.toString(),
+        );
+        expect(shared.history.map((entry) => entry.timestamp)).toEqual(
+          [first, last].map((time) => time.toISOString()),
+        );
+        expect(shared.startDate).toBe(
+          new Date(Math.max(logStart.getTime(), start.getTime())).toISOString(),
+        );
+        expect(shared.endDate).toBe(
+          new Date(
+            Math.min(logEnd?.getTime() ?? end.getTime(), end.getTime()),
+          ).toISOString(),
+        );
+        expect(shared.status).toBe(STATUS.FINISHED);
+        expect(await logs.findById(log._id).lean()).toEqual(before);
+      },
+    );
+
+    it('handles exact boundaries and excludes unrelated or empty histories', async () => {
+      freezeAt(during);
+      await logs.deleteMany({});
+      const touching = await logs.create({
+        akey: owner,
+        startDate: new Date(start.getTime() - 60000),
+        endDate: start,
+        status: STATUS.FINISHED,
+        history: [{ timestamp: start, socDisplay: 80 }],
+      });
+      await logs.create([
+        {
+          akey: owner,
+          startDate: end,
+          endDate: new Date(end.getTime() + 60000),
+          status: STATUS.FINISHED,
+          history: [{ timestamp: end, socDisplay: 80 }],
+        },
+        {
+          akey: owner,
+          startDate: new Date(start.getTime() - 60000),
+          endDate: new Date(start.getTime() - 1),
+          status: STATUS.FINISHED,
+          history: [{ timestamp: new Date(start.getTime() - 1) }],
+        },
+        {
+          akey: owner,
+          startDate: new Date(start.getTime() - 60000),
+          endDate: new Date(end.getTime() + 60000),
+          status: STATUS.FINISHED,
+          history: [{ timestamp: 'invalid' }, { timestamp: end }],
+        },
+        {
+          akey: 'fedcba',
+          startDate: start,
+          endDate: end,
+          status: STATUS.FINISHED,
+          history: [batteryEntry],
+        },
+      ]);
+      const response = await request(app.getHttpServer())
+        .get('/trips/expire/info')
+        .expect(200);
+      expect(response.body.logs.map((entry) => entry.id)).toEqual([
+        touching._id.toString(),
+      ]);
+      expect(response.body.logs[0].history[0].timestamp).toBe(
+        start.toISOString(),
+      );
+    });
+
+    it('returns windowed totals rather than stored whole-session totals', async () => {
+      freezeAt(during);
+      await logs.deleteMany({});
+      const log = await logs.create({
+        akey: owner,
+        startDate: new Date(start.getTime() - 60000),
+        endDate: new Date(end.getTime() + 60000),
+        status: STATUS.FINISHED,
+        type: TYPE.CHARGE,
+        rechargedKWh: 999,
+        dischargedKWh: 999,
+        averageKW: 999,
+        history: [
+          { timestamp: new Date(start.getTime() - 1), cec: 0, ced: 0 },
+          { timestamp: start, cec: 110, ced: 50, dcBatteryPower: -10 },
+          { timestamp: during, cec: 115, ced: 51, dcBatteryPower: -30 },
+          { timestamp: end, cec: 999, ced: 999, dcBatteryPower: -999 },
+        ],
+      });
+      const response = await request(app.getHttpServer())
+        .get('/trips/expire/info')
+        .expect(200);
+      expect(response.body.logs[0]).toMatchObject({
+        rechargedKWh: 5,
+        dischargedKWh: 1,
+        averageKW: -20,
+      });
+      expect(response.body.metadata).toMatchObject({
+        rechargedEnergy: 5,
+        consumedEnergy: 1,
+        avgChargeSpeed: 20,
+      });
+      expect((await logs.findById(log._id)).rechargedKWh).toBe(999);
+
+      await logs.create({
+        akey: owner,
+        startDate: new Date(start.getTime() - 60000),
+        endDate: end,
+        status: STATUS.FINISHED,
+        type: TYPE.CHARGE,
+        rechargedKWh: 999,
+        history: [batteryEntry],
+      });
+      const incomplete = await request(app.getHttpServer())
+        .get('/trips/expire/info')
+        .expect(200);
+      expect(incomplete.body.metadata).not.toHaveProperty('rechargedEnergy');
+      expect(incomplete.body.metadata).not.toHaveProperty('avgChargeSpeed');
+    });
+
+    it('strips spatial fields from mixed battery/location records', async () => {
+      freezeAt(during);
+      await trips.updateOne({ code: 'expire' }, { locationEnabled: false });
+      await logs.updateMany(
+        {},
+        {
+          history: [
+            {
+              ...batteryEntry,
+              latitude: 52.5,
+              longitude: 13.4,
+              altitude: 20,
+              accuracy: 5,
+              speed: 30,
+              odo: 1000,
+              futureSensitiveField: 'private',
+            },
+          ],
+        },
+      );
+      const response = await request(app.getHttpServer())
+        .get('/trips/expire/info')
+        .expect(200);
+      expect(response.body.logs[0].history).toEqual([
+        { ...batteryEntry, timestamp: during.toISOString() },
+      ]);
+    });
+  });
 
   it('uses the captured time when a lookup crosses the trip start', async () => {
     freezeAt(new Date(start.getTime() - 1));

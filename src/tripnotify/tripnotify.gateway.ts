@@ -10,28 +10,7 @@ import { Server, Socket } from 'socket.io';
 import { Sync } from 'src/logs/schemas/sync.schema';
 import { TRIP_LENGTH } from './schemas/trip.schema';
 import { TripNotifyService } from './tripnotify.service';
-
-// An allowlist prevents new telemetry fields from accidentally exposing location.
-const BATTERY_DATA_FIELDS: ReadonlyArray<keyof Sync> = [
-  'timestamp',
-  'charging',
-  'socDisplay',
-  'socBMS',
-  'soh',
-  'slowChargePort',
-  'normalChargePort',
-  'rapidChargePort',
-  'auxBatteryVoltage',
-  'dcBatteryVoltage',
-  'dcBatteryCurrent',
-  'dcBatteryPower',
-  'cec',
-  'ced',
-  'batteryMinTemperature',
-  'batteryMaxTemperature',
-  'batteryInletTemperature',
-  'outsideTemperature',
-];
+import { sharedSync } from './utils/shared-sync';
 
 @WebSocketGateway({
   cors: { origin: '*' },
@@ -93,20 +72,9 @@ export class TripNotifyGateway
         return;
       }
 
-      const sharedData: Partial<Sync> = {};
-      if (trip.locationEnabled) {
-        Object.assign(sharedData, data);
-      } else {
-        for (const field of BATTERY_DATA_FIELDS) {
-          if (data[field] !== undefined) {
-            Object.assign(sharedData, { [field]: data[field] });
-          }
-        }
-      }
-
       this.server.to(this.room(code)).emit(`route-update:${code}`, {
         logId,
-        data: sharedData,
+        data: sharedSync(data, trip.locationEnabled),
       });
     } catch {
       this.logger.warn('TripNotify update authorization failed');
