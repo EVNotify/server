@@ -31,7 +31,6 @@ Copy the `.env.example` file to `.env`.
 
 Adjust the variable values based to your needs.
 
-
 ## Running the server
 
 ```bash
@@ -44,6 +43,35 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+## TripNotify live updates
+
+The bundled website lives in `public/tripnotify/index.html` and is served at
+`/frontend/tripnotify/?code=SHARE_CODE`. It sends the required socket credentials
+and displays live connection errors separately from trip-loading errors.
+
+Socket.IO clients must supply the trip's share code when connecting:
+
+```ts
+const socket = io(serverUrl, { auth: { code: shareCode } });
+socket.on(`route-update:${shareCode}`, ({ logId, data }) => {
+  // Handle this trip's update.
+});
+socket.on('connect_error', (error) => {
+  // Unauthorized shares receive the generic message "Unauthorized".
+});
+```
+
+Each connection receives only its authorized share's updates. Reconnect with a new
+connection to switch shares. Live delivery requires an active trip and active
+owner Premium; permissions are checked again before each update. When location
+sharing is disabled, updates include only timestamp and allowed battery/charging
+telemetry, including temperature readings. Historical access after a trip ends
+does not extend live delivery.
+
+**Deployment:** update consuming clients to send `auth.code` before deploying this
+server change. Clients that omit it will be rejected. There is no unrestricted
+compatibility fallback. See the [implementation plan](docs/plans/tripnotify-socket-privacy.md).
 
 ## Test
 

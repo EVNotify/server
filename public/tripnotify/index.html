@@ -99,14 +99,22 @@
     const stopsEl = document.getElementById("chargingStops");
     const errorEl = document.getElementById("error");
     const infoEl = document.getElementById("info");
+    const errors = { trip: '', socket: '' };
 
-    function showError(message) {
-      errorEl.style.display = 'block';
-      errorEl.textContent = message;
+    function renderErrors() {
+      const messages = Object.values(errors).filter(Boolean);
+      errorEl.style.display = messages.length ? 'block' : 'none';
+      errorEl.textContent = messages.join(' ');
     }
 
-    function hideError() {
-      errorEl.style.display = 'none';
+    function showError(message, source = 'trip') {
+      errors[source] = message;
+      renderErrors();
+    }
+
+    function hideError(source = 'trip') {
+      errors[source] = '';
+      renderErrors();
     }
 
     const map = L.map('map').setView([51.505, -0.09], 13);
@@ -149,8 +157,21 @@
           showError("Trip could not be loaded");
         });
 
-      const socket = io({
-        query: { code }
+      const socket = io(baseUrl || window.location.origin, {
+        auth: { code }
+      });
+
+      socket.on('connect', () => {
+        hideError('socket');
+      });
+
+      socket.on('connect_error', (error) => {
+        showError(
+          error.message === 'Unauthorized'
+            ? 'Live updates unavailable: this share is not authorized'
+            : 'Live updates unavailable: could not connect to the server',
+          'socket'
+        );
       });
 
       socket.on(`route-update:${code}`, (payload) => {

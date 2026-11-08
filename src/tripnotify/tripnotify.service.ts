@@ -106,7 +106,7 @@ export class TripNotifyService {
         $lte: now,
       },
       endDate: {
-        $gte: now,
+        $gt: now,
       }
     }).exec();
   }
