@@ -31,7 +31,6 @@ Copy the `.env.example` file to `.env`.
 
 Adjust the variable values based to your needs.
 
-
 ## Running the server
 
 ```bash
@@ -44,6 +43,52 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+## TripNotify live updates
+
+Owners can list and manage all their own trips, including scheduled and expired
+ones. Guest access still follows each share's dates, Premium status, and access
+after expiry setting.
+
+Shared history selects sessions by their recorded sample timestamps, including
+delayed uploads created after the share ends when historical access is retained.
+Samples are limited to `start <= timestamp < end`. Displayed session dates include
+the selected samples and are clamped to the sharing window. Partial-session
+measurements are recalculated from those samples without changing the stored
+log. Missing measurements are omitted from the response, and the website shows
+"–" instead of a misleading zero. Trip totals are omitted when any contributing
+session lacks the necessary measurements. Energy uses the difference between
+recorded counters inside the window; values between samples or across the window
+boundaries are not estimated.
+
+The bundled website lives in `public/tripnotify/index.html` and is served at
+`/frontend/tripnotify/?code=SHARE_CODE`. It sends the required socket credentials
+and displays live connection errors separately from trip-loading errors.
+
+Socket.IO clients must supply the trip's share code when connecting:
+
+```ts
+const socket = io(serverUrl, { auth: { code: shareCode } });
+socket.on(`route-update:${shareCode}`, ({ logId, data }) => {
+  // Handle this trip's update.
+});
+socket.on('connect_error', (error) => {
+  // Unauthorized shares receive the generic message "Unauthorized".
+});
+```
+
+Each connection receives only its authorized share's updates. Reconnect with a new
+connection to switch shares. Live delivery requires an active trip and active
+owner Premium; permissions are checked again before each update. Each sample must
+also have a valid timestamp within `start <= timestamp < end`; uploading old data
+during an active share does not authorize sharing it. When location
+sharing is disabled, updates include only timestamp and allowed battery/charging
+telemetry, including temperature readings. Historical access after a trip ends
+does not extend live delivery.
+
+**Deployment:** update consuming clients to send `auth.code` before deploying this
+server change. Clients that omit it will be rejected. There is no unrestricted
+compatibility fallback. See the [implementation plan](docs/plans/tripnotify-socket-privacy.md).
 
 ## Test
 

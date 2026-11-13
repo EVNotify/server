@@ -93,21 +93,52 @@ export class LogsService {
     return Promise.resolve(new LogDto(log));
   }
 
-  async findLogsWithinDateRange(akey: string, start: Date, end: Date): Promise<Log[]> {
-    const query = {
-      akey,
-      startDate: { $gte: start },
-      $and: [
-        {
-          $or: [
-            { endDate: { $lte: end } },
-            { endDate: null, status: STATUS.RUNNING },
-          ]
-        }
-      ]
-    };
-
-    return this.logModel.find(query).select('-history').sort({startDate: 'desc'});
+  async findLogsWithinDateRange(
+    akey: string,
+    start: Date,
+    end: Date,
+  ): Promise<Log[]> {
+    // Session dates track server activity; delayed samples may belong to an
+    // earlier sharing window. Match their recorded times instead.
+    return this.logModel.aggregate<Log>([
+      { $match: { akey } },
+      {
+        $match: {
+          $expr: {
+            $anyElementTrue: [
+              {
+                $map: {
+                  input: { $ifNull: ['$history', []] },
+                  as: 'entry',
+                  in: {
+                    $let: {
+                      vars: {
+                        timestamp: {
+                          $convert: {
+                            input: '$$entry.timestamp',
+                            to: 'date',
+                            onError: null,
+                            onNull: null,
+                          },
+                        },
+                      },
+                      in: {
+                        $and: [
+                          { $gte: ['$$timestamp', start] },
+                          { $lt: ['$$timestamp', end] },
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+      { $project: { history: 0 } },
+      { $sort: { startDate: -1 } },
+    ]);
   }
 
   async findAll(akey: string, type?: TYPE): Promise<LogDto[]> {
