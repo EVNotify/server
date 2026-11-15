@@ -8,7 +8,6 @@ import {
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
-import mongoose from 'mongoose';
 import { AuthGuard } from './account.guard';
 import { AccountModule } from './account.module';
 import { AccountService } from './account.service';
@@ -19,6 +18,7 @@ import { AuthenticationException } from './exceptions/authentication.exception';
 import { AuthorizationException } from './exceptions/authorization.exception';
 
 describe('AccountGuard', () => {
+  let module: TestingModule;
   let accountGuard: AuthGuard;
   let accountService: AccountService;
   let testAccount: AccountDto;
@@ -32,8 +32,8 @@ describe('AccountGuard', () => {
     testAccount = await accountService.create(dto);
   }
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+  beforeAll(async () => {
+    module = await Test.createTestingModule({
       imports: [
         AccountModule,
         ConfigModule.forRoot(),
@@ -44,13 +44,15 @@ describe('AccountGuard', () => {
     accountGuard = module.get<AuthGuard>(AuthGuard);
     accountService = module.get<AccountService>(AccountService);
 
-    if (!testAccount) {
-      await createAccount();
-    }
+    await createAccount();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   afterAll(async () => {
-    await mongoose.disconnect();
+    await module?.close();
   });
 
   it('should be defined', () => {
@@ -58,11 +60,15 @@ describe('AccountGuard', () => {
   });
 
   it('should not be able to proceed without authorization header', async () => {
-    const mockContext = createMock<ExecutionContext>();
+    const mockContext = createMock<ExecutionContext>({
+      switchToHttp: () => ({
+        getRequest: () => ({ headers: {} }),
+      }),
+    });
 
-    await expect(async () => {
-      await accountGuard.canActivate(mockContext);
-    }).rejects.toThrow(BadRequestException);
+    await expect(accountGuard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('should not be able to proceed with invalid authorization header', async () => {
@@ -76,18 +82,17 @@ describe('AccountGuard', () => {
       }),
     });
 
-    const result = await expect(async () => {
-      await accountGuard.canActivate(mockContext);
-    }).rejects;
+    const result = accountGuard.canActivate(mockContext);
 
-    result.toThrow(BadRequestException);
-    result.toThrowError(new AuthorizationException().message);
+    await expect(result).rejects.toThrow(BadRequestException);
+    await expect(result).rejects.toThrow(new AuthorizationException().message);
   });
 
   it('should not be able to proceed with missing akey param', async () => {
     const mockContext = createMock<ExecutionContext>({
       switchToHttp: () => ({
         getRequest: () => ({
+          params: {},
           headers: {
             authorization: testAccount.akey + ' ' + testAccount.token,
           },
@@ -95,14 +100,14 @@ describe('AccountGuard', () => {
       }),
     });
 
-    const result = await expect(async () => {
-      await accountGuard.canActivate(mockContext);
-    }).rejects;
-
-    result.toThrow(ForbiddenException);
+    await expect(accountGuard.canActivate(mockContext)).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 
   it('should not be able to proceed with wrong token', async () => {
+    const wrongToken =
+      (testAccount.token[0] === '0' ? '1' : '0') + testAccount.token.slice(1);
     const mockContext = createMock<ExecutionContext>({
       switchToHttp: () => ({
         getRequest: () => ({
@@ -110,25 +115,27 @@ describe('AccountGuard', () => {
             akey: testAccount.akey,
           },
           headers: {
-            authorization:
-              testAccount.akey +
-              ' ' +
-              testAccount.token.split('').reverse().join(''),
+            authorization: testAccount.akey + ' ' + wrongToken,
           },
         }),
       }),
     });
 
-    const result = await expect(async () => {
-      await accountGuard.canActivate(mockContext);
-    }).rejects;
+    const result = accountGuard.canActivate(mockContext);
 
-    result.toThrow(UnauthorizedException);
-    result.toThrowError(new AuthenticationException().message);
+    await expect(result).rejects.toThrow(UnauthorizedException);
+    await expect(result).rejects.toMatchObject({
+      status: 401,
+      message: new AuthenticationException().message,
+    });
   });
 
   it('should not be able to proceed with non-existing user', async () => {
-    const nonExistingAKey = accountService.akey();
+    let nonExistingAKey = accountService.akey();
+
+    while (await accountService.findOne(nonExistingAKey)) {
+      nonExistingAKey = accountService.akey();
+    }
 
     const mockContext = createMock<ExecutionContext>({
       switchToHttp: () => ({
@@ -137,21 +144,46 @@ describe('AccountGuard', () => {
             akey: nonExistingAKey,
           },
           headers: {
-            authorization:
-              nonExistingAKey +
-              ' ' +
-              testAccount.token.split('').reverse().join(''),
+            authorization: nonExistingAKey + ' ' + testAccount.token,
           },
         }),
       }),
     });
 
-    const result = await expect(async () => {
-      await accountGuard.canActivate(mockContext);
-    }).rejects;
+    const result = accountGuard.canActivate(mockContext);
 
-    result.toThrow(UnauthorizedException);
-    result.toThrowError(new AccountNotExistsException().message);
+    await expect(result).rejects.toThrow(UnauthorizedException);
+    await expect(result).rejects.toMatchObject({
+      status: 401,
+      message: new AccountNotExistsException().message,
+    });
+  });
+
+  it('should return generic Unauthorized for unexpected service errors', async () => {
+    jest
+      .spyOn(accountService, 'loginWithToken')
+      .mockRejectedValueOnce(new Error('Database connection failed'));
+
+    const mockContext = createMock<ExecutionContext>({
+      switchToHttp: () => ({
+        getRequest: () => ({
+          params: {
+            akey: testAccount.akey,
+          },
+          headers: {
+            authorization: testAccount.akey + ' ' + testAccount.token,
+          },
+        }),
+      }),
+    });
+
+    const result = accountGuard.canActivate(mockContext);
+
+    await expect(result).rejects.toThrow(UnauthorizedException);
+    await expect(result).rejects.toMatchObject({
+      status: 401,
+      message: 'Unauthorized',
+    });
   });
 
   it('should be able to proceed with correct authorization header', async () => {
